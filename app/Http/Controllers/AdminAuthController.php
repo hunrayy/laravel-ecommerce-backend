@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
+
 use PHPMailer\PHPMailer\Exception; //for catching errors
 use Illuminate\Support\Facades\Validator; //for validating the request coming in
 use Illuminate\Support\Facades\Hash; //for password hahsing
@@ -82,5 +83,84 @@ class AdminAuthController extends Controller
             'code' => 'success',
             'message' => 'User is authorized... grant access',
         ]);
+    }
+
+    public function settings(Request $request){
+        try{
+            $request->validate([
+                'formData.firstname' => 'required|string',
+                'formData.lastname' => 'required|string',
+                'formData.email' => 'required|email',
+                'formData.countryOfWarehouseLocation' => 'required|string', // Ensure this is present
+                'formData.domesticShippingFeeInNaira' => 'required|numeric',
+                'formData.internationalShippingFeeInNaira' => 'required|numeric',
+                'formData.otp' => 'required|integer',
+                'formData.previousEmail' => 'required|email', // Ensure previous email is present
+            ]);
+
+            $codeFromCookies = $request->header('codeFromCookies');
+            $OTP = (int)$request->input('formData.otp');
+            $previousEmail = $request->input('formData.previousEmail');
+
+            if(!$codeFromCookies){
+                return response()->json([
+                    'message' => 'The OTP you provided seems to be invalid or expired',
+                    'code' => 'invalid-jwt',
+                ]);
+            }
+            //decode codeFromCookies
+            $decodeToken = JWT::decode($codeFromCookies, new Key(env('JWT_SECRET'), 'HS256'));
+            $decodedToken = $decodeToken->code;
+
+            // Compare the decodedToken with the OTP
+            if($decodedToken !== $OTP){
+                return response()->json([
+                    'message' => 'Invalid OTP',
+                    'code' => 'invalid-jwt',
+                ]);
+            }
+
+            //Otp matches dedcodedToken...proceed to update database
+            Admin::where("email", $previousEmail)->update([
+                'firstname' => $request->input('formData.firstname'),
+                'lastname' => $request->input('formData.lastname'),
+                'email' => $request->input('formData.email'),
+                'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
+                'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
+                'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira')
+            ]);
+
+            // Fetch the updated record
+            $updatedRecord = Admin::where("email", $request->input('formData.email'))->first(); // Fetch the updated record
+
+
+            //admin record updated successfully, return success message
+            return response()->json([
+                'message' => 'Admin record updated successfully',
+                'code' => 'success',
+                'data' => [
+                    'firstname' => $updatedRecord->firstname,
+                    'lastname' => $updatedRecord->lastname,
+                    'email' => $updatedRecord->email,
+                    'countryOfWarehouseLocation' => $updatedRecord->countryOfWarehouseLocation,
+                    'domesticShippingFeeInNaira' => $updatedRecord->domesticShippingFeeInNaira,
+                    'internationalShippingFeeInNaira' => $updatedRecord->internationalShippingFeeInNaira
+                ]
+            ]);
+        }catch(ExpiredException $e){
+            return response()->json([
+                'message' => 'The OTP you provided seems to be invalid or expired',
+                'code' => 'invalid-jwt',
+                'reason' => $e->getMessage(),
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'The OTP you provided seems to be invalid or expired',
+                'code' => 'invalid-jwt',
+                'reason' => $e->getMessage(),
+            ]);
+        }
+
+
     }
 }

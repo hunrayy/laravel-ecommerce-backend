@@ -8,6 +8,7 @@ use App\Http\Controllers\TokenController;
 use App\Http\Middleware\VerifyJWTToken;
 use App\Http\Middleware\VerifyAdminToken;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\PagesController;
 
 
 Route::get('/user', function (Request $request) {
@@ -31,5 +32,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/admin/login', [AdminAuthController::class, 'adminLogin']);
 Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
+Route::get('/admin/get-page', [PagesController::class, 'index'])->middleware(VerifyAdminToken::class);
+Route::post('/admin-settings', [AdminAuthController::class, 'settings'])->middleware(VerifyAdminToken::class);
 
 

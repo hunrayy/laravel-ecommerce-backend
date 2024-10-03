@@ -25,6 +25,11 @@ return new class extends Migration
             $table->text('sixthSection')->nullable();
             $table->text('seventhSection')->nullable();
             $table->text('eighthSection')->nullable();
+            $table->text('ninthSection')->nullable();
+            $table->text('tenthSection')->nullable();
+            $table->text('eleventhSection')->nullable();
+            $table->text('twelfthSection')->nullable();
+
             $table->timestamps();
         });
 
@@ -41,6 +46,11 @@ return new class extends Migration
                 'sixthSection' => null,     
                 'seventhSection' => null,   
                 'eighthSection' => null,
+                'ninthSection' => null,
+                'tenthSection' => null,
+                'eleventhSection' => null,
+                'twelfthSection' => null,
+
             ],
             [
                 'id' => (string) Str::uuid(),
@@ -54,6 +64,27 @@ return new class extends Migration
                 'sixthSection' => '- Returns and refunds are only accepted under rare circumstances, but please be aware that if you return an order that has been installed, used, lace cut, or passed 7 days since declared delivered, you will not be entitled to a refund.',
                 'seventhSection' => 'Refunds could take up to 10 working days to reflect',
                 'eighthSection' => '- If your order was shipped to a different address   and not what you filled out. Please contact if you’d like to change your address.',
+                'ninthSection' => null,
+                'tenthSection' => null,
+                'eleventhSection' => null,
+                'twelfthSection' => null,
+            ],
+            [
+                'id' => (string) Str::uuid(),
+                'title' => 'Delivery policy',
+                'page' => 'deliveryPolicy',
+                'firstSection' => 'Our delivery charges vary based on your location and the total weight of your order. The exact delivery cost will be calculated at checkout.',
+                'secondSection' => 'We aim to process and dispatch all orders within 2-3 working days. During peak times or sales, processing may take longer.',
+                'thirdSection' => 'Delivery times depend on your location:',
+                'fourthSection' => 'Local deliveries (within the city): 1-3 working days',
+                'fifthSection' => 'National deliveries: 3-7 working days',
+                'sixthSection' => 'International deliveries: 7-21 working days',
+                'seventhSection' => 'Once your order has been dispatched, you will receive a shipping confirmation email with a tracking number. You can use this to track the status of your delivery.',
+                'eighthSection' => 'We do not offer free delivery. All delivery charges will be clearly stated at checkout before you complete your purchase.',
+                "ninthSection" => 'Please ensure that the delivery address provided is accurate and complete. We are not responsible for any delays or misdeliveries due to incorrect or incomplete addresses.',
+                'tenthSection' => 'If you need to change your delivery address after placing an order, please contact us as soon as possible. Changes to the delivery address cannot be made once the order has been dispatched.',
+                'eleventhSection' => 'In case of any delays or issues with delivery, please contact our customer service team for assistance. We will do our best to resolve any problems as quickly as possible.',
+                'twelfthSection' => 'By placing an order with us, you agree to our delivery policy and understand the delivery times and charges applicable to your order.'
             ]
         ]);
     }
