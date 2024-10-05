@@ -451,4 +451,108 @@ class ProductController extends Controller
             ]);
         }
     }
+    // $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get();
+    // return response()->json([
+    //                 'code' => 'success',
+    //                 'message' => 'Products successfully retrieved',
+    //                 'data' => $products
+    //             ]);
+
+    public function searchProducts(Request $request){
+        $query = $request->query('query');
+    
+        // Get products from cache if available
+        $cachedProducts = Cache::get('allProducts');
+    
+        if ($cachedProducts) {
+            // Filter cached products based on the query
+            $filteredProducts = $this->filterProducts($cachedProducts, $query);
+            
+            return response()->json([
+                'message' => 'Products successfully retrieved from cache',
+                'code' => 'success',
+                'data' => $filteredProducts
+            ]);
+        } else {
+            // Query the database if products are not found in cache
+            $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get();
+    
+            // Cache all products for future requests
+            Cache::put('allProducts', $products);
+    
+            return response()->json([
+                'message' => 'Products successfully retrieved from database',
+                'code' => 'success',
+                'data' => $products
+            ]);
+        }
+        // $query = $request->query('query');
+        
+        // // Assume $products contains the results of your search
+        // $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get();
+
+        // return response()->json([
+        //     'message' => 'Product successfully retrieved',
+        //     'code' => 'success',
+        //     'data' => $products
+        // ]);
+
+
+        
+        // $queryWords = explode(' ', strtolower($query)); // Split query into words
+        
+        // Check cache first
+        // $cachedProducts = Cache::get('products');
+
+        // if ($cachedProducts) {
+        //     // Filter products from the cache
+        //     $filteredProducts = $this->filterProducts($cachedProducts, $queryWords);
+        //     return response()->json([
+        //         'message' => 'Product successfully retrieved',
+        //         'code' => 'success',
+        //         'data' => $filteredProducts
+        //     ]);
+        // } else {
+        //     // Fetch products from the database if not in cache
+        //     $responseData = $this->getAllProducts($request);
+
+        //     // Decode the response data
+        //     $response = $responseData->getData();
+            // if ($response->code === 'success') {
+            //     $cachedProducts = $response->data; // Extract data from the response
+            //     $filteredProducts = $this->filterProducts($cachedProducts, $queryWords);
+            //     return response()->json([
+            //         'message' => 'Product successfully retrieved',
+            //         'code' => 'success',
+            //         'data' => $filteredProducts
+            //     ]);
+            // } else {
+            //     // Handle the error if products could not be retrieved
+            //     return response()->json([
+            //         'code' => 'error',
+            //         'message' => 'An error occurred while retrieving products',
+            //         'reason' => $response->reason
+            //     ]);
+            // }
+        // }
+    }
+
+
+    // private function filterProducts($products, $queryWords)
+    // {
+    //     return array_filter($products, function($product) use ($queryWords) {
+    //         foreach ($queryWords as $word) {
+    //             if (stripos($product['productName'], $word) !== false) {
+    //                 return true;
+    //             }
+    //         }
+    //         return false;
+    //     });
+    // }
+
+    private function filterProducts($products, $query) {
+        return $products->filter(function($product) use ($query) {
+            return stripos($product['productName'], $query) !== false;
+        });
+    }
 }

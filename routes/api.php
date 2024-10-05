@@ -9,6 +9,8 @@ use App\Http\Middleware\VerifyJWTToken;
 use App\Http\Middleware\VerifyAdminToken;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\GetPagesController;
+use App\Http\Controllers\EditPagesController;
+
 
 
 Route::get('/user', function (Request $request) {
@@ -27,6 +29,9 @@ Route::middleware([VerifyJWTToken::class])->group(function () {
 });
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/get-all-products', [ProductController::class, 'getAllProducts']);
+Route::get('/search-products', [ProductController::class, 'searchProducts']);
+
+
 
 
 // -----------------------------------admin routes----------------------------------------//
@@ -34,7 +39,7 @@ Route::post('/admin/login', [AdminAuthController::class, 'adminLogin']);
 Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
 Route::get('/admin/get-page', [GetPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
-// Route::post('/admin/edit-page', [PagesController::class, ])
+Route::post('/admin/edit-page', [EditPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
 Route::post('/admin-settings', [AdminAuthController::class, 'settings'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/update-product', [ProductController::class, 'updateProduct'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct'])->middleware(VerifyAdminToken::class);
