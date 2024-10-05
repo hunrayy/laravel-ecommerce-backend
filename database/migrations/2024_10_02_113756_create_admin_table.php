@@ -34,7 +34,7 @@ return new class extends Migration
             'id' => (string) Str::uuid(),
             'firstname' => 'john',
             'lastname' => 'doe',
-            'email' => 'jhondoe@gmail.com',
+            'email' => 'johndoe@gmail.com',
             'password' => Hash::make('johndoe'),
             'user' => 'admin',
             'is_an_admin' => true,

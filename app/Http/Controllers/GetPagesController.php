@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\Pages;
 
 
-class PagesController extends Controller
+class GetPagesController extends Controller
 {
     //
     public function index(Request $request){
@@ -17,7 +17,7 @@ class PagesController extends Controller
 
             return $this->getShippingPolicy();
 
-        }else if($page == 'efundPolicy'){
+        }else if($page == 'refundPolicy'){
             
             return $this->getRefundPolicy();
 
@@ -61,43 +61,47 @@ class PagesController extends Controller
     }
 
     public function getRefundPolicy(){
-        $cachedData = Cache::get('refundPolicy');
+        try{
+            $cachedData = Cache::get('refundPolicy');
 
-        if ($cachedData) {
+            if ($cachedData) {
+                return response()->json([
+                    'code' => 'success',
+                    'message' => 'Refund policy page successfully retrieved from cache',
+                    'data' => $cachedData
+                ]);
+            }
+    
+            $feedback = Pages::where("page", 'refundPolicy')->first();
+            if($feedback){
+                $pageData = [
+                    'title' => $feedback->title,
+                    'firstSection' => $feedback->firstSection,
+                    'secondSection' => $feedback->secondSection,
+                    'thirdSection' => $feedback->thirdSection,
+                    'fourthSection' => $feedback->fourthSection,
+                    'fifthSection' => $feedback->fifthSection,
+                    'sixthSection' => $feedback->sixthSection,
+                    'seventhSection' => $feedback->seventhSection,
+                    'eighthSection' => $feedback->eighthSection,
+    
+                ];
+    
+                Cache::put('refundPolicy', $pageData);
+                
+                return response()->json([
+                    'code' => 'success',
+                    'message' => 'Refund policy page successfully retrieved from database',
+                    'data' => $pageData
+                ]);
+            }
+        }catch(Exception $e){
             return response()->json([
-                'code' => 'success',
-                'message' => 'Refund policy page successfully retrieved from cache',
-                'data' => $cachedData
+                'code' => 'error',
+                'message' => 'Page not found in database',
+                "reason" => $e->getMessage()
             ]);
         }
-
-        $feedback = Pages::where("page", 'refundPolicy')->first();
-        if($feedback){
-            $pageData = [
-                'title' => $feedback->title,
-                'firstSection' => $feedback->firstSection,
-                'secondSection' => $feedback->secondSection,
-                'thirdSection' => $feedback->thirdSection,
-                'fourthSection' => $feedback->fourthSection,
-                'fifthSection' => $feedback->fifthSection,
-                'sixthSection' => $feedback->sixthSection,
-                'seventhSection' => $feedback->seventhSection,
-                'eighthSection' => $feedback->eighthSection,
-
-            ];
-
-            Cache::put('refundPolicy', $pageData);
-            
-            return response()->json([
-                'code' => 'success',
-                'message' => 'Refund policy page successfully retrieved from database',
-                'data' => $pageData
-            ]);
-        }
-        return response()->json([
-            'code' => 'error',
-            'message' => 'Page not found in database'
-        ]);
     }
 
 

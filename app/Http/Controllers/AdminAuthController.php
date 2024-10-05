@@ -125,6 +125,8 @@ class AdminAuthController extends Controller
                 'firstname' => $request->input('formData.firstname'),
                 'lastname' => $request->input('formData.lastname'),
                 'email' => $request->input('formData.email'),
+                'is_an_admin' => true,
+                'user' => 'admin',
                 'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
                 'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
                 'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira')
@@ -142,6 +144,8 @@ class AdminAuthController extends Controller
                     'firstname' => $updatedRecord->firstname,
                     'lastname' => $updatedRecord->lastname,
                     'email' => $updatedRecord->email,
+                    'is_an_admin' => true,
+                    'user' => 'admin',
                     'countryOfWarehouseLocation' => $updatedRecord->countryOfWarehouseLocation,
                     'domesticShippingFeeInNaira' => $updatedRecord->domesticShippingFeeInNaira,
                     'internationalShippingFeeInNaira' => $updatedRecord->internationalShippingFeeInNaira
