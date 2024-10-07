@@ -10,6 +10,7 @@ use App\Http\Middleware\VerifyAdminToken;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\GetPagesController;
 use App\Http\Controllers\EditPagesController;
+use App\Http\Controllers\PaymentController;
 
 
 
@@ -29,7 +30,12 @@ Route::middleware([VerifyJWTToken::class])->group(function () {
 });
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/get-all-products', [ProductController::class, 'getAllProducts']);
+Route::get('/get-single-product', [ProductController::class, 'getSingleProduct']);
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
+Route::get('/get-number-of-days-of-delivery', [AuthController::class, 'getNumberOfDaysOfDelivery'])->middleware(VerifyJWTToken::class);
+Route::post('/flutterwave/make-payment', [PaymentController::class, 'makePayment'])->middleware(VerifyJWTToken::class);
+Route::get('flutterwave/validate-payment', [PaymentController::class, 'validatePayment']);
+Route::post('/save-products-to-db-after-payment', [ProductController::class, 'saveProductToDbAfterPayment'])->middleware(VerifyJWTToken::class);
 
 
 

@@ -68,6 +68,8 @@ class AdminAuthController extends Controller
                     'countryOfWarehouseLocation' => $admin->countryOfWarehouseLocation,
                     'domesticShippingFeeInNaira' => $admin->domesticShippingFeeInNaira,
                     'internationalShippingFeeInNaira' => $admin->internationalShippingFeeInNaira,
+                    'numberOfDaysForDomesticDelivery' => $admin->numberOfDaysForDomesticDelivery,
+                    'numberOfDaysForInternationalDelivery' => $admin->numberOfDaysForInternationalDelivery
                 ],
             ]);
 
@@ -94,6 +96,8 @@ class AdminAuthController extends Controller
                 'formData.countryOfWarehouseLocation' => 'required|string', // Ensure this is present
                 'formData.domesticShippingFeeInNaira' => 'required|numeric',
                 'formData.internationalShippingFeeInNaira' => 'required|numeric',
+                'formData.numberOfDaysForDomesticDelivery' => 'required|numeric',
+                'formData.numberOfDaysForInternationalDelivery' => 'required|numeric',
                 'formData.otp' => 'required|integer',
                 'formData.previousEmail' => 'required|email', // Ensure previous email is present
             ]);
@@ -129,7 +133,9 @@ class AdminAuthController extends Controller
                 'user' => 'admin',
                 'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
                 'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
-                'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira')
+                'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira'),
+                'numberOfDaysForDomesticDelivery' => $request->input('formData.numberOfDaysForDomesticDelivery'),
+                'numberOfDaysForInternationalDelivery' => $request->input('formData.numberOfDaysForInternationalDelivery')
             ]);
 
             // Fetch the updated record
@@ -148,7 +154,9 @@ class AdminAuthController extends Controller
                     'user' => 'admin',
                     'countryOfWarehouseLocation' => $updatedRecord->countryOfWarehouseLocation,
                     'domesticShippingFeeInNaira' => $updatedRecord->domesticShippingFeeInNaira,
-                    'internationalShippingFeeInNaira' => $updatedRecord->internationalShippingFeeInNaira
+                    'internationalShippingFeeInNaira' => $updatedRecord->internationalShippingFeeInNaira,
+                    'numberOfDaysForDomesticDelivery' => $updatedRecord->numberOfDaysForDomesticDelivery,
+                    'numberOfDaysForInternationalDelivery' => $updatedRecord->numberOfDaysForInternationalDelivery
                 ]
             ]);
         }catch(ExpiredException $e){

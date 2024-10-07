@@ -264,6 +264,50 @@ class ProductController extends Controller
         
     }
 
+    public function getSingleProduct(Request $request){
+        $productId = $request->query('productId');
+
+        //check if product exists in cache
+        $cachedProduct = Cache::get("singleProduct_{$productId}");
+        if($cachedProduct){
+            //product exists in cache
+            return response()->json([
+                "code" => "success",
+                "message" => "single product successfully retrieved from cache",
+                "data" => $cachedProduct
+            ]);
+        }
+        // If not in cache, fetch from the database 
+        try{
+            $fetchedProduct = Product::where('id', $productId)->first();
+
+            if($fetchedProduct){
+                //save the product in the cache
+                Cache::put("singleProduct_{$productId}", $fetchedProduct);
+
+                return response()->json([
+                    "code" => "success",
+                    "message" => "single product successfully retrieved from database",
+                    "data" => $fetchedProduct
+                ]);
+            }else{
+                return response()->json([
+                    "message" => "Product could not be retrieved",
+                    "code" => "error"
+                ]);
+                
+            }
+        }catch(\Exception $e){
+            return response()->json([
+                "message" => "Product could not be retrieved",
+                "code" => "error",
+                "reason" => $e->getMessage()
+            ]);
+            
+        }
+
+    }
+
 
     public function updateProduct(Request $request){
         try{
@@ -395,7 +439,7 @@ class ProductController extends Controller
             $productId = $request->input('productToDelete.id');
 
             //fetch the product in the database using the id gotten
-            $productToDelete = Product::find($productId)->first();
+            $productToDelete = Product::find($productId);
 
             //delete the product image
             $productImage = $productToDelete->productImage;
@@ -553,6 +597,6 @@ class ProductController extends Controller
     private function filterProducts($products, $query) {
         return $products->filter(function($product) use ($query) {
             return stripos($product['productName'], $query) !== false;
-        });
+        })->toArray();
     }
 }

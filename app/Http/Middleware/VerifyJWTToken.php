@@ -23,7 +23,7 @@ class VerifyJWTToken
             return response()->json([
                 'code' => 'invalid-jwt',
                 'message' => 'Authorization header not found'
-            ], 401);
+            ]);
         }
 
         try {

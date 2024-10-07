@@ -21,6 +21,8 @@ class Admin extends Model
         'countryOfWarehouseLocation',
         'domesticShippingFeeInNaira',
         'internationalShippingFeeInNaira',
+        'numberOfDaysForDomesticDelivery',
+        'numberOfDaysForInternationalDelivery',
     ];
 
     //override the getIncrementing method

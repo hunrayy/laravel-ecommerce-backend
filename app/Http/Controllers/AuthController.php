@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Validator; //for validating the request coming in
 use Illuminate\Support\Facades\Hash; //for password hahsing
 use Illuminate\Support\Facades\Log; //for logging error to the terminal
 use App\Models\User;
+use App\Models\Admin;
+
 
 class AuthController extends Controller
 {
@@ -258,5 +260,36 @@ class AuthController extends Controller
         }
 
         
+    }
+
+    public function getNumberOfDaysOfDelivery(Request $request){
+        try{
+            $table = Admin::where('is_an_admin', true)->first();
+            
+            $numberOfDaysForDomesticDelivery = $table->numberOfDaysForDomesticDelivery;
+            $numberOfDaysForInternationalDelivery = $table->numberOfDaysForInternationalDelivery;
+            $countryOfWarehouseLocation = $table->countryOfWarehouseLocation;
+            $domesticShippingFeeInNaira = $table->domesticShippingFeeInNaira;
+            $internationalShippingFeeInNaira = $table->internationalShippingFeeInNaira;
+
+            return response()->json([
+                "message" => 'number of days for domestic and international delivery fetched successfully',
+                "code" => "success",
+                "data" => [
+                    'countryOfWarehouseLocation' => $countryOfWarehouseLocation,
+                    "numberOfDaysForDomesticDelivery" => $numberOfDaysForDomesticDelivery,
+                    "numberOfDaysForInternationalDelivery" => $numberOfDaysForInternationalDelivery,
+                    "domesticShippingFeeInNaira" => $domesticShippingFeeInNaira,
+                    "internationalShippingFeeInNaira" => $internationalShippingFeeInNaira
+                ]
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                "message" => 'An error occured while fetching number of days for domestic and international delivery fetched successfully',
+                "code" => "error",
+                "reason" => $e->getMessage()
+            ]);
+        }
+
     }
 }
