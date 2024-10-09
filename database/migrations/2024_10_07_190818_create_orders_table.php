@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('state');
             $table->string('address');
             $table->string('city');
-            $table->string('postalCode');
+            $table->string('postalCode')->nullable();
             $table->string('phoneNumber');
             $table->decimal('totalPrice', 10, 2);
             $table->string('currency');

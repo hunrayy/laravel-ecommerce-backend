@@ -47,18 +47,19 @@ class PaymentController extends Controller
         $authController = new AuthController(); // Create an instance of AuthController
 
         $tokenPayload = [
-            $email => $email,
-            $firstname => $firstname,
-            $lastname => $lastname,
-            $address => $address,
-            $city => $city,
-            $postalCode => $postalCode,
-            $phoneNumber => $phoneNumber,
-            $country => $country,
-            $state => $request->state,
-            $totalPrice => $totalPrice,
-            $currency => $currency,
-            $expectedDateOfDelivery => $expectedDateOfDelivery
+            
+            'email' => $email,
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            'address' => $address,
+            'city' => $city,
+            'postalCode' => $postalCode,
+            'phoneNumber' => $phoneNumber,
+            'country' => $country,
+            'state' => $request->state,
+            'totalPrice' => $totalPrice,
+            'currency' => $currency,
+            'expectedDateOfDelivery' => $expectedDateOfDelivery
         ];
 
         // Generate token with a 5-minute expiration

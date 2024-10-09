@@ -28,7 +28,8 @@ class TokenController extends Controller
             $decodedToken = JWT::decode($bearerToken, new Key(env("JWT_SECRET"), 'HS256'));
             return response()->json([
                 'code'=> "success",
-                'message'=> 'token is still active'
+                'message'=> 'token is still active',
+                'data' => $decodedToken 
             ]);
         }catch(ExpiredException $e){
             return response()->json([

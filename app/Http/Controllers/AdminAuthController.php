@@ -36,6 +36,7 @@ class AdminAuthController extends Controller
                 return response()->json(['message' => 'Invalid email/password', 'code' => 'error']);
             }
 
+
             // Verify password
             if (!Hash::check($password, $admin->password)) {
                 return response()->json(['message' => 'Invalid email/password', 'code' => 'error']);

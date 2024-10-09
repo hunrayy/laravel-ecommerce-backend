@@ -11,6 +11,11 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\GetPagesController;
 use App\Http\Controllers\EditPagesController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\UserPasswordResetController;
+use App\Http\Controllers\AdminPasswordResetController;
+
+
 
 
 
@@ -34,14 +39,20 @@ Route::get('/get-single-product', [ProductController::class, 'getSingleProduct']
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/get-number-of-days-of-delivery', [AuthController::class, 'getNumberOfDaysOfDelivery'])->middleware(VerifyJWTToken::class);
 Route::post('/flutterwave/make-payment', [PaymentController::class, 'makePayment'])->middleware(VerifyJWTToken::class);
-Route::get('flutterwave/validate-payment', [PaymentController::class, 'validatePayment']);
-Route::post('/save-products-to-db-after-payment', [ProductController::class, 'saveProductToDbAfterPayment'])->middleware(VerifyJWTToken::class);
+Route::get('flutterwave/validate-payment', [PaymentController::class, 'validatePayment'])->middleware(VerifyJWTToken::class);
+Route::post('/save-products-to-db-after-payment', [OrderController::class, 'saveProductToDbAfterPayment'])->middleware(VerifyJWTToken::class);
+Route::post('/get-user-details', [OrderController::class, 'getUserDetails'])->middleware(VerifyJWTToken::class);
+Route::post('/send-password-reset-link', [UserPasswordResetController::class, 'sendPasswordResetLink']);
+Route::post('/reset-password', [UserPasswordResetController::class, 'resetPassword'])->middleware(VerifyJWTToken::class);
+
 
 
 
 
 // -----------------------------------admin routes----------------------------------------//
 Route::post('/admin/login', [AdminAuthController::class, 'adminLogin']);
+Route::post('/admin-send-password-reset-link', [AdminPasswordResetController::class, 'sendAdminPasswordResetLink']);
+Route::post('/admin-reset-password', [AdminPasswordResetController::class, 'AdminResetPassword'])->middleware(VerifyJWTToken::class);
 Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
 Route::get('/admin/get-page', [GetPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
@@ -49,5 +60,13 @@ Route::post('/admin/edit-page', [EditPagesController::class, 'index'])->middlewa
 Route::post('/admin-settings', [AdminAuthController::class, 'settings'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/update-product', [ProductController::class, 'updateProduct'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct'])->middleware(VerifyAdminToken::class);
+
+
+
+
+
+
+Route::post('/test', [OrderController::class, 'saveProductToDbAfterPayment']);
+
 
 

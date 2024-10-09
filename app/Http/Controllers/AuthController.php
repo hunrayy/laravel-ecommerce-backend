@@ -69,7 +69,7 @@ class AuthController extends Controller
                 'code' => 'success',
                 'message' => 'Email verification code sent successfully',
                 'verificationCode' => $hashedCode,
-                'generatedToken' => $this->createToken(['email' => $email, 'verificationCode' => $verificationCode], 300),
+                'generatedToken' => $this->createToken(['email' => $email, 'verificationCode' => $verificationCode], 300), // Token expires in 5 minutes
                 'testCode' => $verificationCode
             ]);
             
@@ -292,4 +292,7 @@ class AuthController extends Controller
         }
 
     }
+
+   
+    
 }
