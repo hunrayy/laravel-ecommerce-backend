@@ -24,7 +24,7 @@ class PaymentController extends Controller
             'phoneNumber' => 'required|string',
             'country' => 'required|string',
             'state' => 'required|string',
-            'totalPrice' => 'required|numeric',
+            'checkoutTotal' => 'required|numeric',
             'currency' => 'required|string',
             'expectedDateOfDelivery' => 'required|string'
         ]);
@@ -38,7 +38,7 @@ class PaymentController extends Controller
         $phoneNumber = $request->input('phoneNumber');
         $country = $request->input('country');
         $state = $request->input('state');
-        $totalPrice = $request->input('totalPrice');
+        $totalPrice = $request->input('checkoutTotal');
         $currency = $request->input('currency');
         $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
         $uniqueId = now()->timestamp; // Similar to Date.now()
@@ -59,7 +59,8 @@ class PaymentController extends Controller
             'state' => $request->state,
             'totalPrice' => $totalPrice,
             'currency' => $currency,
-            'expectedDateOfDelivery' => $expectedDateOfDelivery
+            'expectedDateOfDelivery' => $expectedDateOfDelivery,
+            'transactionId' => $uniqueId
         ];
 
         // Generate token with a 5-minute expiration

@@ -62,11 +62,3 @@ Route::post('/admin/update-product', [ProductController::class, 'updateProduct']
 Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct'])->middleware(VerifyAdminToken::class);
 
 
-
-
-
-
-Route::post('/test', [OrderController::class, 'saveProductToDbAfterPayment']);
-
-
-

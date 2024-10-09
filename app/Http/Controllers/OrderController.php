@@ -16,62 +16,26 @@ class OrderController extends Controller
 
     public function saveProductToDbAfterPayment(Request $request){
         try{
-            // $detailsToken = $request->header('detailsToken'); // Token from header
+            $detailsToken = $request->header('detailsToken'); // Token from header
 
-            // // Verify JWT Token
-            // $verifyToken = JWT::decode($detailsToken, new Key(env('JWT_SECRET'), 'HS256'));
+            // Verify JWT Token
+            $verifyToken = JWT::decode($detailsToken, new Key(env('JWT_SECRET'), 'HS256'));
 
-            // // Extract details from the token
-            // $firstname = $verifyToken->firstname;
-            // $lastname = $verifyToken->lastname;
-            // $email = $verifyToken->email;
-            // $address = $verifyToken->address;
-            // $city = $verifyToken->city;
-            // $postalCode = $verifyToken->postalCode;
-            // $phoneNumber = $verifyToken->phoneNumber;
-            // $country = $verifyToken->country;
-            // $state = $verifyToken->state;
-            // $totalPrice = $verifyToken->totalPrice;
-            // $currency = $verifyToken->currency;
-            // $expectedDateOfDelivery = $verifyToken->expectedDateOfDelivery;
-            // $products = $request->input('cartProducts'); // Assuming products are passed from the frontend
-
-
-
-
-
-             // // Extract details from the token
-            $firstname = $request->firstname;
-            $lastname = $request->lastname;
-            $email = $request->email;
-            $address = $request->address;
-            $city = $request->city;
-            $postalCode = $request->postalCode;
-            $phoneNumber = $request->phoneNumber;
-            $country = $request->country;
-            $state = $request->state;
-            $totalPrice = $request->totalPrice;
-            $currency = $request->currency;
-            $expectedDateOfDelivery = $request->expectedDateOfDelivery;
+            // Extract details from the token
+            $firstname = $verifyToken->firstname;
+            $lastname = $verifyToken->lastname;
+            $email = $verifyToken->email;
+            $address = $verifyToken->address;
+            $city = $verifyToken->city;
+            $postalCode = $verifyToken->postalCode;
+            $phoneNumber = $verifyToken->phoneNumber;
+            $country = $verifyToken->country;
+            $state = $verifyToken->state;
+            $totalPrice = $verifyToken->totalPrice;
+            $currency = $verifyToken->currency;
+            $expectedDateOfDelivery = $verifyToken->expectedDateOfDelivery;
+            $transactionId = $verifyToken->transactionId;
             $products = $request->input('cartProducts'); // Assuming products are passed from the frontend
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             // Fetch user_id from the email passed in the token
             $user = User::where('email', $email)->firstOrFail(); 
@@ -106,17 +70,6 @@ class OrderController extends Controller
             $subject = 'Payment Confirmation'; //subject of mail
 
             $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
-                // return "<li style='margin-bottom: 8px;'>Item " . ($index + 1) . ": <b>" . $item['name'] . "</b> - {$currency} " . number_format((float)$item['price'], 2, '.', '') . "</li>";
-                // return "
-                // <div style='border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin: 10px 0; display: flex; flex-direction: column; justify-content: center; align-items: center'>
-                //     <img src='{$item['img']}' alt='" . htmlspecialchars($item['name']) . "' style='width: 80px; height: 80px;'>
-                //     <div style='text-align: center;'>
-                //         <h4 style='margin: 0;'>" . htmlspecialchars($item['name']) . "</h4>
-                //         <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
-                //         <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
-                //         <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['price']) . "</5>
-                //     </div>
-                // </div>";
                 return "
                 <div style='padding: 20px; text-align: center; background: #f4f4f4'>
                     <div>
@@ -132,6 +85,8 @@ class OrderController extends Controller
                     ";
             }, $products, array_keys($products)));
 
+            $postalCodeSection = $postalCode ? "<b>Postal code:</b> {$postalCode}<br/>" : '';
+
             $body = "
                 <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
                     <h2 style='color: #4CAF50;'>Payment Confirmation</h2>
@@ -143,25 +98,24 @@ class OrderController extends Controller
                     </p>
                     <p>
                         <b>Tracking ID:</b> {$tracking_id}<br/>
-                        <b>Order ID:</b> {$order->id}<br/>
+                        <b>Transaction ID:</b> {$transactionId}<br/>
                     </p>
                     <h4 style='color: #333;'>Order Summary:</h4>
                     <div style='display: flex; flex-wrap: wrap; gap: 10px;'>
                         {$orderSummary}
                     </div>
                     <p>
-                        <b>Shipping information</b>
-                        <b>Country:</b> {$currency} " . $totalPrice . "<br/>
-                        <b>State:</b> {$currency} " . $totalPrice . "<br/>
-                        <b>City:</b> {$currency} " . $totalPrice . "<br/>
-                        <b>Address:</b> {$currency} " . $totalPrice . "<br/>
-                        <b>Shipping Address:</b> {$address}<br/>
+                        <p><b>Shipping information:</b></p>
+                        <b>Country:</b> {$country}<br/>
+                        <b>State:</b> {$state}<br/>
+                        <b>City:</b> {$city}<br/>
+                        <b>Address:</b> {$address}<br/>
+                        {$postalCodeSection} <!-- Postal Code section will only appear if not null -->
                         <b>Expected date of delivery:</b> {$expectedDateOfDelivery}
                     </p>
                     <p>
-                        <b>Total Amount:</b> {$currency} " . $totalPrice . "<br/>
-                        <b>Shipping Address:</b> {$address}<br/>
-                        <b>Expected date of delivery:</b> {$expectedDateOfDelivery}
+                        <b>Contact information</b><br/>
+                        <b>Phone number:</b> {$phoneNumber}<br/>
                     </p>
                     <p>
                         If you have any questions or need assistance, feel free to contact our support team.
