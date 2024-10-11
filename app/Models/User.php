@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+
+use Illuminate\Support\Str;
+
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -21,6 +25,22 @@ class User extends Authenticatable
         'email',
         'password',
     ];
+
+        // Disable the auto-incrementing feature
+        public $incrementing = false;
+
+        // Set the key type to string
+        protected $keyType = 'string';
+    
+        protected static function boot()
+        {
+            parent::boot();
+    
+            static::creating(function ($model) {
+                // Automatically set the id to a new UUID when creating
+                $model->id = (string) Str::uuid();
+            });
+        }
 
     /**
      * The attributes that should be hidden for serialization.

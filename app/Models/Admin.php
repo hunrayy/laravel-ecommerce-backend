@@ -18,11 +18,11 @@ class Admin extends Model
         'password',
         'user',
         'is_an_admin',
-        'countryOfWarehouseLocation',
-        'domesticShippingFeeInNaira',
-        'internationalShippingFeeInNaira',
-        'numberOfDaysForDomesticDelivery',
-        'numberOfDaysForInternationalDelivery',
+        // 'countryOfWarehouseLocation',
+        // 'domesticShippingFeeInNaira',
+        // 'internationalShippingFeeInNaira',
+        // 'numberOfDaysForDomesticDelivery',
+        // 'numberOfDaysForInternationalDelivery',
     ];
 
     //override the getIncrementing method

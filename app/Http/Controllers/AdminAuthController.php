@@ -12,7 +12,11 @@ use Illuminate\Support\Facades\Validator; //for validating the request coming in
 use Illuminate\Support\Facades\Hash; //for password hahsing
 use Illuminate\Support\Facades\Log; //for logging error to the terminal
 use App\Http\Controllers\AuthController; 
+
+
 use App\Models\Admin;
+use App\Models\Shipping;
+
 
 class AdminAuthController extends Controller
 {
@@ -132,6 +136,15 @@ class AdminAuthController extends Controller
                 'email' => $request->input('formData.email'),
                 'is_an_admin' => true,
                 'user' => 'admin',
+                // 'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
+                // 'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
+                // 'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira'),
+                // 'numberOfDaysForDomesticDelivery' => $request->input('formData.numberOfDaysForDomesticDelivery'),
+                // 'numberOfDaysForInternationalDelivery' => $request->input('formData.numberOfDaysForInternationalDelivery')
+            ]);
+
+            //update the shipping table
+            Shipping::first()->update([
                 'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
                 'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
                 'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira'),
@@ -139,8 +152,11 @@ class AdminAuthController extends Controller
                 'numberOfDaysForInternationalDelivery' => $request->input('formData.numberOfDaysForInternationalDelivery')
             ]);
 
-            // Fetch the updated record
-            $updatedRecord = Admin::where("email", $request->input('formData.email'))->first(); // Fetch the updated record
+            // Fetch the updated record from the admin and shipping table
+            $updatedAdminRecord = Admin::where("email", $request->input('formData.email'))->first(); // Fetch the updated record
+
+            $updatedShippingRecord = Shipping::first(); // Fetch the updated record
+
 
 
             //admin record updated successfully, return success message
@@ -148,16 +164,16 @@ class AdminAuthController extends Controller
                 'message' => 'Admin record updated successfully',
                 'code' => 'success',
                 'data' => [
-                    'firstname' => $updatedRecord->firstname,
-                    'lastname' => $updatedRecord->lastname,
-                    'email' => $updatedRecord->email,
+                    'firstname' => $updatedAdminRecord->firstname,
+                    'lastname' => $updatedAdminRecord->lastname,
+                    'email' => $updatedAdminRecord->email,
                     'is_an_admin' => true,
                     'user' => 'admin',
-                    'countryOfWarehouseLocation' => $updatedRecord->countryOfWarehouseLocation,
-                    'domesticShippingFeeInNaira' => $updatedRecord->domesticShippingFeeInNaira,
-                    'internationalShippingFeeInNaira' => $updatedRecord->internationalShippingFeeInNaira,
-                    'numberOfDaysForDomesticDelivery' => $updatedRecord->numberOfDaysForDomesticDelivery,
-                    'numberOfDaysForInternationalDelivery' => $updatedRecord->numberOfDaysForInternationalDelivery
+                    'countryOfWarehouseLocation' => $updatedShippingRecord->countryOfWarehouseLocation,
+                    'domesticShippingFeeInNaira' => $updatedShippingRecord->domesticShippingFeeInNaira,
+                    'internationalShippingFeeInNaira' => $updatedShippingRecord->internationalShippingFeeInNaira,
+                    'numberOfDaysForDomesticDelivery' => $updatedShippingRecord->numberOfDaysForDomesticDelivery,
+                    'numberOfDaysForInternationalDelivery' => $updatedShippingRecord->numberOfDaysForInternationalDelivery
                 ]
             ]);
         }catch(ExpiredException $e){

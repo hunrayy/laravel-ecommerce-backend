@@ -18,17 +18,17 @@ return new class extends Migration
     {
         Schema::create('admin', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('firstname');;
+            $table->string('firstname');
             $table->string('lastname');
             $table->string('email')->unique();
             $table->string('password');
             $table->string('user');
             $table->boolean('is_an_admin');
-            $table->string('countryOfWarehouseLocation');
-            $table->decimal('domesticShippingFeeInNaira', 10, 2);
-            $table->decimal('internationalShippingFeeInNaira', 10, 2);
-            $table->integer('numberOfDaysForDomesticDelivery');
-            $table->integer('numberOfDaysForInternationalDelivery');
+            // $table->string('countryOfWarehouseLocation');
+            // $table->decimal('domesticShippingFeeInNaira', 10, 2);
+            // $table->decimal('internationalShippingFeeInNaira', 10, 2);
+            // $table->integer('numberOfDaysForDomesticDelivery');
+            // $table->integer('numberOfDaysForInternationalDelivery');
             $table->timestamps();
         });
 
@@ -40,11 +40,11 @@ return new class extends Migration
             'password' => Hash::make('johndoe'),
             'user' => 'admin',
             'is_an_admin' => true,
-            'countryOfWarehouseLocation' => 'Nigeria',
-            'domesticShippingFeeInNaira' => 16551,
-            'internationalShippingFeeInNaira' => 49653,
-            'numberOfDaysForDomesticDelivery' => 7,
-            'numberOfDaysForInternationalDelivery' => 14
+            // 'countryOfWarehouseLocation' => 'Nigeria',
+            // 'domesticShippingFeeInNaira' => 16551,
+            // 'internationalShippingFeeInNaira' => 49653,
+            // 'numberOfDaysForDomesticDelivery' => 7,
+            // 'numberOfDaysForInternationalDelivery' => 14
         ]);
 
     }

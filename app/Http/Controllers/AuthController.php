@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Validator; //for validating the request coming in
 use Illuminate\Support\Facades\Hash; //for password hahsing
 use Illuminate\Support\Facades\Log; //for logging error to the terminal
 use App\Models\User;
-use App\Models\Admin;
+use App\Models\Shipping;
 
 
 class AuthController extends Controller
@@ -264,7 +264,7 @@ class AuthController extends Controller
 
     public function getNumberOfDaysOfDelivery(Request $request){
         try{
-            $table = Admin::where('is_an_admin', true)->first();
+            $table = Shipping::first();
             
             $numberOfDaysForDomesticDelivery = $table->numberOfDaysForDomesticDelivery;
             $numberOfDaysForInternationalDelivery = $table->numberOfDaysForInternationalDelivery;
