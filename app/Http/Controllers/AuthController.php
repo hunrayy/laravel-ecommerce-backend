@@ -10,11 +10,15 @@ use Firebase\JWT\ExpiredException;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception; //for catching errors
 use Illuminate\Support\Facades\Mail; //for mail sending
+use App\Http\Controllers\MailController;
+
 use Illuminate\Support\Facades\Validator; //for validating the request coming in
 use Illuminate\Support\Facades\Hash; //for password hahsing
 use Illuminate\Support\Facades\Log; //for logging error to the terminal
 use App\Models\User;
+use App\Models\Admin;
 use App\Models\Shipping;
+use App\Models\Order;
 
 
 class AuthController extends Controller
@@ -262,6 +266,8 @@ class AuthController extends Controller
         
     }
 
+
+
     public function getNumberOfDaysOfDelivery(Request $request){
         try{
             $table = Shipping::first();
@@ -291,6 +297,94 @@ class AuthController extends Controller
             ]);
         }
 
+    }
+
+
+    public function getUserDetails(Request $request){
+        try{
+            $email = $request->input('user_email');
+
+            //get the user details using email
+            $userDetails = User::where('email', $email)->first();
+
+            $userId = $userDetails->id;
+            //use the id obtained to retrieved a list of the user's order
+
+            $userOrder = Order::where('user_id', $userId)->get();
+
+            return response()->json([
+                "message" => "User order retrieved successfully",
+                "code" => "success",
+                "data" => $userOrder ? $userOrder :     []
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                "message" => "An error occured while retrieving user's order list",
+                "code" => "error",
+                "reason" => $e.getMessage()
+            ]);
+        }
+        
+    }
+
+    public function sendFeedback(Request $request){
+        try{
+            $request->validate([
+                'formData.firstname' => 'required|string',
+                'formData.email' => 'required|email',
+                'formData.comment' => 'required|string', // Ensure this is present
+                'formData.phone' => 'required|string',
+                'formData.otp' => 'required|numeric',
+            ]);
+
+            $codeFromCookies = $request->header('codeFromCookies');
+            $OTP = (int)$request->input('formData.otp');
+            $previousEmail = $request->input('formData.previousEmail');
+
+            if(!$codeFromCookies){
+                return response()->json([
+                    'message' => 'The OTP you provided seems to be invalid or expired',
+                    'code' => 'invalid-jwt',
+                ]);
+            }
+            //decode codeFromCookies
+            $decodeToken = JWT::decode($codeFromCookies, new Key(env('JWT_SECRET'), 'HS256'));
+            $decodedToken = $decodeToken->code;
+
+            // Compare the decodedToken with the OTP
+            if($decodedToken !== $OTP){
+                return response()->json([
+                    'message' => 'Invalid OTP',
+                    'code' => 'invalid-jwt',
+                ]);
+            }
+
+            //fetch the admin email
+            $adminDetails = Admin::first();
+
+            $adminEmail = $adminDetails->email;
+            $firstname = $request->input('formData.firstname');
+
+            //proceed to mail the admin with the feedback
+            $subject = "Feedback from user named $firstname";
+            $body = $request->input('formData.comment');
+            // Send the email
+            $mailClass = new MailController();
+            $mailClass->sendEMail($adminEmail, $subject, $body);
+
+            return response()->json([
+                'message' => "Feedback sent successfully",
+                "code" => "success"
+            ]);
+
+
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => 'An error occured while sending feedback',
+                'code' => 'invalid-jwt',
+                'reason' => $e->getMessage(),
+            ]);
+        }
     }
 
    
