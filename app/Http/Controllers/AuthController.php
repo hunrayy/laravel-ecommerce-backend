@@ -327,65 +327,65 @@ class AuthController extends Controller
         
     }
 
-    public function sendFeedback(Request $request){
-        try{
-            $request->validate([
-                'formData.firstname' => 'required|string',
-                'formData.email' => 'required|email',
-                'formData.comment' => 'required|string', // Ensure this is present
-                'formData.phone' => 'required|string',
-                'formData.otp' => 'required|numeric',
-            ]);
+    // public function sendFeedback(Request $request){
+    //     try{
+    //         $request->validate([
+    //             'formData.firstname' => 'required|string',
+    //             'formData.email' => 'required|email',
+    //             'formData.comment' => 'required|string', // Ensure this is present
+    //             'formData.phone' => 'required|string',
+    //             'formData.otp' => 'required|numeric',
+    //         ]);
 
-            $codeFromCookies = $request->header('codeFromCookies');
-            $OTP = (int)$request->input('formData.otp');
-            $previousEmail = $request->input('formData.previousEmail');
+    //         $codeFromCookies = $request->header('codeFromCookies');
+    //         $OTP = (int)$request->input('formData.otp');
+    //         $previousEmail = $request->input('formData.previousEmail');
 
-            if(!$codeFromCookies){
-                return response()->json([
-                    'message' => 'The OTP you provided seems to be invalid or expired',
-                    'code' => 'invalid-jwt',
-                ]);
-            }
-            //decode codeFromCookies
-            $decodeToken = JWT::decode($codeFromCookies, new Key(env('JWT_SECRET'), 'HS256'));
-            $decodedToken = $decodeToken->code;
+    //         if(!$codeFromCookies){
+    //             return response()->json([
+    //                 'message' => 'The OTP you provided seems to be invalid or expired',
+    //                 'code' => 'invalid-jwt',
+    //             ]);
+    //         }
+    //         //decode codeFromCookies
+    //         $decodeToken = JWT::decode($codeFromCookies, new Key(env('JWT_SECRET'), 'HS256'));
+    //         $decodedToken = $decodeToken->code;
 
-            // Compare the decodedToken with the OTP
-            if($decodedToken !== $OTP){
-                return response()->json([
-                    'message' => 'Invalid OTP',
-                    'code' => 'invalid-jwt',
-                ]);
-            }
+    //         // Compare the decodedToken with the OTP
+    //         if($decodedToken !== $OTP){
+    //             return response()->json([
+    //                 'message' => 'Invalid OTP',
+    //                 'code' => 'invalid-jwt',
+    //             ]);
+    //         }
 
-            //fetch the admin email
-            $adminDetails = Admin::first();
+    //         //fetch the admin email
+    //         $adminDetails = Admin::first();
 
-            $adminEmail = $adminDetails->email;
-            $firstname = $request->input('formData.firstname');
+    //         $adminEmail = $adminDetails->email;
+    //         $firstname = $request->input('formData.firstname');
 
-            //proceed to mail the admin with the feedback
-            $subject = "Feedback from user named $firstname";
-            $body = $request->input('formData.comment');
-            // Send the email
-            $mailClass = new MailController();
-            $mailClass->sendEMail($adminEmail, $subject, $body);
+    //         //proceed to mail the admin with the feedback
+    //         $subject = "Feedback from user named $firstname";
+    //         $body = $request->input('formData.comment');
+    //         // Send the email
+    //         $mailClass = new MailController();
+    //         $mailClass->sendEMail($adminEmail, $subject, $body);
 
-            return response()->json([
-                'message' => "Feedback sent successfully",
-                "code" => "success"
-            ]);
+    //         return response()->json([
+    //             'message' => "Feedback sent successfully",
+    //             "code" => "success"
+    //         ]);
 
 
-        }catch(\Exception $e){
-            return response()->json([
-                'message' => 'An error occured while sending feedback',
-                'code' => 'invalid-jwt',
-                'reason' => $e->getMessage(),
-            ]);
-        }
-    }
+    //     }catch(\Exception $e){
+    //         return response()->json([
+    //             'message' => 'An error occured while sending feedback',
+    //             'code' => 'invalid-jwt',
+    //             'reason' => $e->getMessage(),
+    //         ]);
+    //     }
+    // }
 
    
     
