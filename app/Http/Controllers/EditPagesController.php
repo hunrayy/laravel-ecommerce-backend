@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Pages;
+use Illuminate\Support\Facades\Redis;
+
 
 class EditPagesController extends Controller
 {
@@ -64,12 +66,12 @@ class EditPagesController extends Controller
             $page->save();
 
             // Update the cache with the new data
-            Cache::put('shippingPolicy', [
+            Redis::set('shippingPolicy', json_encode([
                 'title' => $page->title,
                 'firstSection' => $page->firstSection,
                 'secondSection' => $page->secondSection,
                 'thirdSection' => $page->thirdSection,
-            ]);
+            ], true));
 
             return response()->json([
                 'code' => 'success',
@@ -138,7 +140,7 @@ class EditPagesController extends Controller
             $page->save();
 
             // Update the cache with the new data
-            Cache::put('refundPolicy', [
+            Redis::set('refundPolicy', json_encode([
                 'title' => $page->title,
                 'firstSection' => $page->firstSection,
                 'secondSection' => $page->secondSection,
@@ -148,7 +150,7 @@ class EditPagesController extends Controller
                 'sixthSection' => $page->sixthSection,
                 'seventhSection' => $page->seventhSection,
                 'eighthSection' => $page->eighthSection,
-            ]);
+            ], true));
 
             return response()->json([
                 'code' => 'success',
@@ -229,7 +231,7 @@ class EditPagesController extends Controller
             $page->save();
 
             // Update the cache with the new data
-            Cache::put('deliveryPolicy', [
+            Redis::set('deliveryPolicy', json_encode([
                 'title' => $page->title,
                 'firstSection' => $page->firstSection,
                 'secondSection' => $page->secondSection,
@@ -243,7 +245,7 @@ class EditPagesController extends Controller
                 'tenthSection' => $page->tenthSection,
                 'eleventhSection' => $page->eighthSection,
                 'twelfthSection' => $page->eighthSection,
-            ]);
+            ], true));
 
             return response()->json([
                 'code' => 'success',

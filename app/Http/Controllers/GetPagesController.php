@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Pages;
+use Illuminate\Support\Facades\Redis;
 
 
 class GetPagesController extends Controller
@@ -27,13 +28,12 @@ class GetPagesController extends Controller
         }
     }
     public function getShippingPolicy(){
-        $cachedData = Cache::get('shippingPolicy');
-
+        $cachedData = Redis::get('shippingPolicy');
         if ($cachedData) {
             return response()->json([
                 'code' => 'success',
                 'message' => 'Shipping policy page successfully retrieved from cache',
-                'data' => $cachedData
+                'data' => json_decode($cachedData, true)
             ]);
         }
 
@@ -46,7 +46,7 @@ class GetPagesController extends Controller
                 'thirdSection' => $feedback->thirdSection,
             ];
 
-            Cache::put('shippingPolicy', $pageData);
+            Redis::set('shippingPolicy', json_encode($pageData, true));
             
             return response()->json([
                 'code' => 'success',
@@ -62,13 +62,13 @@ class GetPagesController extends Controller
 
     public function getRefundPolicy(){
         try{
-            $cachedData = Cache::get('refundPolicy');
+            $cachedData = Redis::get('refundPolicy');
 
             if ($cachedData) {
                 return response()->json([
                     'code' => 'success',
                     'message' => 'Refund policy page successfully retrieved from cache',
-                    'data' => $cachedData
+                    'data' => json_decode($cachedData, true)
                 ]);
             }
     
@@ -87,7 +87,7 @@ class GetPagesController extends Controller
     
                 ];
     
-                Cache::put('refundPolicy', $pageData);
+                Redis::set('refundPolicy', json_encode($pageData, true));
                 
                 return response()->json([
                     'code' => 'success',
@@ -106,13 +106,13 @@ class GetPagesController extends Controller
 
 
     public function getDeliveryPolicy(){
-        $cachedData = Cache::get('deliveryPolicy');
+        $cachedData = Redis::get('deliveryPolicy');
 
         if ($cachedData) {
             return response()->json([
                 'code' => 'success',
                 'message' => 'Delivery policy page successfully retrieved from cache',
-                'data' => $cachedData
+                'data' => json_decode($cachedData, true)
             ]);
         }
 
@@ -134,7 +134,7 @@ class GetPagesController extends Controller
                 'twelfthSection' => $feedback->twelfthSection,
             ];
 
-            Cache::put('deliveryPolicy', $pageData);
+            Redis::set('deliveryPolicy', json_encode($pageData, true));
             
             return response()->json([
                 'code' => 'success',

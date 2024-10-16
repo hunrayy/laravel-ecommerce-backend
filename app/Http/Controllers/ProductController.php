@@ -146,6 +146,8 @@ use Illuminate\Support\Facades\Validator;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Support\Facades\Cache;
 
+use Illuminate\Support\Facades\Redis;
+
 use App\Models\Product; 
 
 use Illuminate\Http\Request;
@@ -187,7 +189,7 @@ class ProductController extends Controller
 
             //update the cache to hold the current data
             $allProducts = Product::all();
-            Cache::put('allProducts', $allProducts);
+            Redis::set('allProducts', $allProducts);
             
             return response()->json([
                 'message' => 'Product created successfully.',
@@ -241,20 +243,21 @@ class ProductController extends Controller
     
     public function getAllProducts(Request $request){
         //check if products are in cache
-        $cachedProducts = Cache::get('allProducts');
+        $cachedProducts = Redis::get('allProducts');
 
         //if so, return cached products
         if($cachedProducts){
             return response()->json([
                 "code" => "success",
                 "message" => "All products successfully retrieved from cache",
-                "data" => $cachedProducts
+                "data" => json_decode($cachedProducts, true)
             ]);
         }
 
         //else, query the database for products, then save the products to the cache
         $allProducts = Product::all();
-        Cache::put('allProducts', $allProducts);
+        $arrayProducts = $allProducts->toArray();
+        Redis::set('allProducts', $allProducts);
         
         return response()->json([
             "code" => "success",
@@ -268,13 +271,13 @@ class ProductController extends Controller
         $productId = $request->query('productId');
 
         //check if product exists in cache
-        $cachedProduct = Cache::get("singleProduct_{$productId}");
+        $cachedProduct = Redis::get("singleProduct_{$productId}");
         if($cachedProduct){
             //product exists in cache
             return response()->json([
                 "code" => "success",
                 "message" => "single product successfully retrieved from cache",
-                "data" => $cachedProduct
+                "data" => json_decode($cachedProduct, true)
             ]);
         }
         // If not in cache, fetch from the database 
@@ -283,7 +286,7 @@ class ProductController extends Controller
 
             if($fetchedProduct){
                 //save the product in the cache
-                Cache::put("singleProduct_{$productId}", $fetchedProduct);
+                Redis::set("singleProduct_{$productId}", $fetchedProduct);
 
                 return response()->json([
                     "code" => "success",
@@ -390,7 +393,7 @@ class ProductController extends Controller
 
             //update the cache to hold the current data
             $allProducts = Product::all();
-            Cache::put('allProducts', $allProducts);
+            Redis::set('allProducts', $allProducts);
             
     
             return response()->json([
@@ -481,7 +484,7 @@ class ProductController extends Controller
             
             //delete successful, fetch all products and save to cache
             $newProducts = Product::all();
-            Cache::put("allProducts", $newProducts);
+            Redis::set("allProducts", $newProducts);
 
             return response()->json([
                 "code" => "success",

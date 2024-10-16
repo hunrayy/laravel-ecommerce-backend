@@ -46,6 +46,7 @@ Route::post('/send-password-reset-link', [UserPasswordResetController::class, 's
 Route::post('/reset-password', [UserPasswordResetController::class, 'resetPassword'])->middleware(VerifyJWTToken::class);
 Route::get('/get-user-details', [AuthController::class, 'getUserDetails'])->middleware(VerifyJWTToken::class);
 Route::post('/send-feedback', [AuthController::class, 'sendFeedback']);
+Route::get('/user/get-page', [GetPagesController::class, 'index']);
 
 
 
@@ -68,6 +69,8 @@ Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct']
 
 Route::get('/admin/get-orders', [OrderController::class, 'getOrders'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/change-order-status-to-out-for-delivery', [OrderController::class, 'ChangeOrderStatusToOutForDelivery'])->middleware(VerifyAdminToken::class);
+Route::post('/admin/change-order-status-to-delivered', [OrderController::class, 'ChangeOrderStatusToDelivered'])->middleware(VerifyAdminToken::class);
+
 
 
 

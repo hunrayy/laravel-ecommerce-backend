@@ -9,6 +9,8 @@ use App\Http\Controllers\MailController;
 
 use App\Models\Order;
 use App\Models\User; 
+use Illuminate\Support\Facades\Redis;
+
 
 /**
  * pass the expected date of delivery, shipping fee and transaction id from flutter wave to the mail and save to the database also
@@ -157,27 +159,77 @@ class OrderController extends Controller
         try{
             $query = $request->query('status');
             if($query == "pending"){
+                //check if pending orders are saved in cache
+                $cachedOrders = Redis::get('pendingOrders');
+                if($cachedOrders){
+                    return response()->json([
+                        "message" => "all pending orders successfully retrieved from cache",
+                        "code" => "success",
+                        "data" => json_decode($cachedOrders, true)
+                    ]);
+                }else{
+                    //fetch all pending orders from database
+                    $allPendingOrders = Order::where('status', 'pending')->orderBy('created_at', 'desc')->get();
 
-                //fetch all pending orders
-                $allPendingOrders = Order::where('status', 'pending')->get();
+                    //save fetched orders to cache
+                    Redis::set('pendingOrders', json_encode($allPendingOrders, true));
+
+                    return response()->json([
+                        "message" => "all pending orders successfully retrieved from database",
+                        "code" => "success",
+                        "data" => $allPendingOrders
+                    ]);
+                }
+
 
             }else if($query == "outForDelivery"){
+                //check if out-for-delivery orders are saved in cache
+                $cachedOrders = Redis::get('outForDeliveryOrders');
 
-                //fetch all pending orders
-                $allPendingOrders = Order::where('status', 'outForDelivery')->get();
+                if($cachedOrders){
+                    return response()->json([
+                        "message" => "all out-for-delivery orders successfully retrieved from cache",
+                        "code" => "success",
+                        "data" => json_decode($cachedOrders, true)
+                    ]);
+                }else{
+                    //fetch all out-for-delivery orders from database
+                    $allOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get();
 
+                    //save fetched orders to cache
+                    Redis::set('outForDeliveryOrders', json_encode($allOutForDeliveryOrders, true));
+                    
+                    return response()->json([
+                        "message" => "all out-for-delivery orders successfully retrieved from database",
+                        "code" => "success",
+                        "data" => $allOutForDeliveryOrders
+                    ]);
+                }
             }else if($query == "delivered"){
+                //check if delivered orders are saved in cache
+                $cachedOrders = Redis::get('deliveredOrders');
 
-                //fetch all pending orders
-                $allPendingOrders = Order::where('status', 'delivered')->get();
+                if($cachedOrders){
+                    return response()->json([
+                        "message" => "all delivered orders successfully retrieved from cache",
+                        "code" => "success",
+                        "data" => json_decode($cachedOrders, true)
+                    ]);
+                }else{
+                    //fetch all delivered orders from database
+                    $allDeliveredOrders = Order::where('status', 'delivered')->orderBy('created_at', 'desc')->get();
 
+                    //save fetched orders to cache
+                    Redis::set('deliveredOrders', json_encode($allDeliveredOrders, true));
+                    
+                    
+                    return response()->json([
+                        "message" => "all delivered orders successfully retrieved from database",
+                        "code" => "success",
+                        "data" => $allDeliveredOrders
+                    ]);
+                }
             }
-
-            return response()->json([
-                "message" => "all pending orders fetched successfully",
-                "code" => "success",
-                "data" => $allPendingOrders ? $allPendingOrders : []
-            ]);
         }catch(Exception $e){
             return response()->json([
                 "message" => "an error occured while fetching pending orders",
@@ -213,6 +265,7 @@ class OrderController extends Controller
             $totalPrice = $order->totalPrice;
             $trackingId = $order->tracking_id;
             $orderDate = $order->created_at->format('F j, Y');
+            $outForDeliveryDate = $order->updated_at->format('F j, Y');
             $currency = $order->currency;
             $expectedDateOfDelivery = $order->expectedDateOfDelivery;
             $transactionId = $order->transactionId;
@@ -221,6 +274,19 @@ class OrderController extends Controller
             //update the status to out-for-delivery
             $order->status = 'outForDelivery';
             $order->save();
+
+            //fetch all fresh out-for-delivery orders from database
+            $newAllOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get();
+
+            //save fetched orders to cache
+            Redis::set('outForDeliveryOrders', json_encode($newAllOutForDeliveryOrders, true));
+
+            //fetch all fresh delivered orders from database
+            $newAllOutForDeliveredOrders = Order::where('status', 'delivered')->orderBy('updated_at', 'desc')->get();
+
+            //save fetched orders to cache
+            Redis::set('deliveredOrders', json_encode($newAllOutForDeliveredOrders, true));
+            
 
             //send a notification via mail to the user
             $subject = 'Order Status Update'; //subject of mail
@@ -257,6 +323,7 @@ class OrderController extends Controller
                     <ul>
                         <li><strong>Tracking ID:</strong> {$trackingId}</li>
                         <li><strong>Order Date:</strong> {$orderDate}</li>
+                        <li><strong>Out For Delivery Date:</strong> {$outForDeliveryDate}</li>
                     </ul>
 
                     <h4 style='color: #333;'>Order Product(s):</h4>
@@ -289,5 +356,124 @@ class OrderController extends Controller
             ]);
         }
 
+    }
+
+
+    public function ChangeOrderStatusToDelivered(Request $request){
+        try{
+            $request->validate([
+                'trackingId' => 'string|required'
+            ]);
+            //fetch the order in the database using the trackingId
+            $order = Order::where('tracking_id', $request->trackingId)->first();
+            if(!$order){
+                return response()->json([
+                    "message" => "Order with tracking number does not exist",
+                    "code" => "error"
+                ]);
+            }
+
+            $firstname = $order->firstname;
+            $lastname = $order->lastname;
+            $email = $order->email;
+            $address = $order->address;
+            $city = $order->city;
+            $postalCode = $order->postalCode;
+            $phoneNumber = $order->phoneNumber;
+            $country = $order->country;
+            $state = $order->state;
+            $totalPrice = $order->totalPrice;
+            $trackingId = $order->tracking_id;
+            $orderDate = $order->created_at->format('F j, Y');
+            $deliveredDate = $order->updated_at->format('F j, Y');
+            $currency = $order->currency;
+            $expectedDateOfDelivery = $order->expectedDateOfDelivery;
+            $transactionId = $order->transactionId;
+            $products = json_decode($order->products, true);
+
+            //update the status to out-for-delivery
+            $order->status = 'delivered';
+            $order->save();
+
+            //fetch all fresh delivered orders from database
+            $newAllDeliveredOrders = Order::where('status', 'delivered')->orderBy('updated_at', 'desc')->get();
+
+            //save fetched orders to cache
+            Redis::set('deliveredOrders', json_encode($newAllDeliveredOrders, true));
+
+            //fetch all fresh out-for-delivery orders from database
+            $newAllOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get();
+
+            //save fetched orders to cache
+            Redis::set('outForDeliveryOrders', json_encode($newAllOutForDeliveryOrders, true));
+            
+
+            //send a notification via mail to the user
+            $subject = 'Order Status Update'; //subject of mail
+
+            $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
+                return "
+                <div style='padding: 20px; text-align: center; background: #f4f4f4'>
+                    <div>
+                        <img src='{$item['img']}' alt='" . htmlspecialchars($item['name']) . "' style='width: 80px; height: 80px;'>
+                    </div>
+                    <div style='text-align: center;'>
+                        <h4 style='margin: 0;'>" . htmlspecialchars($item['name']) . "</h4>
+                        <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
+                        <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
+                        <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['price']) . "</5>
+                    </div>
+                </div>
+                    ";
+            }, $products, array_keys($products)));
+
+            $postalCodeSection = $postalCode ? "<b>Postal code:</b> {$postalCode}<br/>" : '';
+
+            $body = "
+                <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                    <h2 style='color: #4CAF50;'>Order Status Update</h2>
+                    <p style='font-size: 16px;'>
+                        <b>Dear {$firstname},</b>
+                    </p>
+                        <p>
+                            We are happy to inform you that your order with Tracking ID: <strong>{$trackingId}</strong> has been <strong>delivered</strong>! We hope that everything arrived in great condition and that you are satisfied with your purchase.
+                        </p>
+
+                    <h4>Order Summary:</h4>
+                    <ul>
+                        <li><strong>Tracking ID:</strong> {$trackingId}</li>
+                        <li><strong>Order Date:</strong> {$orderDate}</li>
+                        <li><strong>Out For Delivery Date:</strong> {$deliveredDate}</li>
+                    </ul>
+
+                    <h4 style='color: #333;'>Order Product(s):</h4>
+                    <div style='display: flex; flex-wrap: wrap; gap: 10px;'>
+                        {$orderSummary}
+                    </div>
+                   
+                     <p>
+                        If you have any questions, concerns, or feedback regarding your order, please don't hesitate to contact our support team. Your satisfaction is important to us!
+                    </p>
+                        <p style='margin-top: 20px;'>
+                            Thank you once again for choosing us. We hope you enjoy your purchase, and we look forward to serving you again in the future!
+                        </p>
+                </div>
+            ";
+
+            // Send the email
+            $mailClass = new MailController();
+            $mailClass->sendEMail($email, $subject, $body);
+
+            return response()->json([
+                'message' => "order status successfully updated to delivered",
+                "code" => "success"
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => "An error occured while updating order status to out for delivery",
+                "code" => "error",
+                "reason" => $e->getMessage()
+            ]);
+        }
     }
 }
