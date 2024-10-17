@@ -188,8 +188,11 @@ class ProductController extends Controller
             ]);
 
             //update the cache to hold the current data
-            $allProducts = Product::all();
-            Redis::set('allProducts', $allProducts);
+            $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray(); //  paginate the results
+
+            //save all products fetched to the cache
+            Redis::set('allProducts', json_encode($allProducts, true));
+    
             
             return response()->json([
                 'message' => 'Product created successfully.',
@@ -242,28 +245,87 @@ class ProductController extends Controller
     }
     
     public function getAllProducts(Request $request){
-        //check if products are in cache
-        $cachedProducts = Redis::get('allProducts');
+        $page = (int)$request->query('page'); //fall back value of 1 if page isn't passed
+        $perPage = (int)$request->query('perPage'); //fallback value of 2 if number of products per page isn't passed
+        
 
-        //if so, return cached products
+        // Retrieve the products array from Redis
+        $cachedProducts = Redis::get('allProducts');
         if($cachedProducts){
+            // Decode the products array
+            $products = json_decode($cachedProducts, true);
+
+            // Calculate total number of products
+            $totalProducts = count($products);
+
+            // Calculate pagination offset
+            $offset = ($page - 1) * $perPage;
+
+            // Slice the array to get the products for the current page
+            $paginatedProducts = array_slice($products, $offset, $perPage);
+
             return response()->json([
-                "code" => "success",
-                "message" => "All products successfully retrieved from cache",
-                "data" => json_decode($cachedProducts, true)
+                'code' => 'success',
+                'message' => 'products successfully fetched from cache',
+                'data' => [
+                    'data' => $paginatedProducts,
+                    'total' => $totalProducts,
+                    'current_page' => $page,
+                    'per_page' => $perPage,
+                ],
             ]);
         }
+        //no product exists in the cache, query the database for products
+        $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray(); //  paginate the results
 
-        //else, query the database for products, then save the products to the cache
-        $allProducts = Product::all();
-        $arrayProducts = $allProducts->toArray();
-        Redis::set('allProducts', $allProducts);
-        
+        //save all products fetched to the cache
+        Redis::set('allProducts', json_encode($allProducts, true));
+
+        // Calculate total number of products
+        $totalProducts = count($allProducts);
+
+        // Calculate pagination offset
+        $offset = ($page - 1) * $perPage;
+
+        // Slice the array to get the products for the current page
+        $paginatedProducts = array_slice($allProducts, $offset, $perPage);
+
         return response()->json([
-            "code" => "success",
-            "message" => "All products successfully retrieved from  database",
-            "data" => $allProducts
+            'code' => 'success',
+            'message' => 'products successfully fetched from database',
+            'data' => [
+                'data' => $paginatedProducts,
+                'total' => $totalProducts,
+                'current_page' => $page,
+                'per_page' => $perPage,
+            ],
         ]);
+
+
+
+
+        // //check if products are in cache
+        // $cachedProducts = Redis::get('allProducts');
+
+        // //if so, return cached products
+        // if($cachedProducts){
+        //     return response()->json([
+        //         "code" => "success",
+        //         "message" => "All products successfully retrieved from cache",
+        //         "data" => json_decode($cachedProducts, true)
+        //     ]);
+        // }
+
+        // //else, query the database for products, then save the products to the cache
+        // $allProducts = Product::all();
+        // $arrayProducts = $allProducts->toArray();
+        // Redis::set('allProducts', $allProducts);
+        
+        // return response()->json([
+        //     "code" => "success",
+        //     "message" => "All products successfully retrieved from  database",
+        //     "data" => $allProducts
+        // ]);
         
     }
 
@@ -392,9 +454,10 @@ class ProductController extends Controller
             $product->save();
 
             //update the cache to hold the current data
-            $allProducts = Product::all();
-            Redis::set('allProducts', $allProducts);
+            $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray();
+            Redis::set('allProducts', json_encode($allProducts, true));
             
+
     
             return response()->json([
                 "code" => "success",
@@ -483,8 +546,8 @@ class ProductController extends Controller
             $productToDelete->delete();
             
             //delete successful, fetch all products and save to cache
-            $newProducts = Product::all();
-            Redis::set("allProducts", $newProducts);
+            $newProducts = Product::orderBy('created_at', 'desc')->get()->toArray();
+            Redis::set("allProducts", json_encode($newProducts, true));
 
             return response()->json([
                 "code" => "success",
