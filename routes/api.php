@@ -69,7 +69,7 @@ Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct']
 
 Route::get('/admin/get-orders', [OrderController::class, 'getOrders'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/change-order-status-to-out-for-delivery', [OrderController::class, 'ChangeOrderStatusToOutForDelivery'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/change-order-status-to-delivered', [OrderController::class, 'ChangeOrderStatusToDelivered'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/change-order-status-to-delivered', [OrderController::class, 'ChangeOrderStatusToDelivered'])->middleware(VerifyAdminToken::class);
 
 
 
