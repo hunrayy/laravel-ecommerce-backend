@@ -474,30 +474,59 @@ class ProductController extends Controller
         
     }
 
-    function getPublicIdFromUrl($secureUrl){
-        // First, remove the base URL (domain, resource type, etc.)
+    // function getPublicIdFromUrl($secureUrl){
+    //     // First, remove the base URL (domain, resource type, etc.)
+    //     $urlParts = parse_url($secureUrl);
+        
+    //     // Extract the path from the URL
+    //     $path = $urlParts['path'];
+
+    //     // Remove '/image/upload/' from the path
+    //     $pathWithoutBase = str_replace('/image/upload/', '', $path);
+
+    //     // Split the path into version and public_id with format (e.g., 'v1312461204/sample.jpg')
+    //     $pathParts = explode('/', $pathWithoutBase);
+
+    //     // Remove the version part (e.g., 'v1312461204')
+    //     array_shift($pathParts);
+
+    //     // Get the public_id with the file extension (e.g., 'sample.jpg')
+    //     $publicIdWithExtension = implode('/', $pathParts);
+
+    //     // Remove the file extension (e.g., '.jpg')
+    //     $publicId = pathinfo($publicIdWithExtension, PATHINFO_FILENAME);
+
+    //     return $publicId;
+    // }
+
+
+    public function getPublicIdFromUrl($secureUrl) {
+        // Parse the URL
         $urlParts = parse_url($secureUrl);
         
         // Extract the path from the URL
         $path = $urlParts['path'];
-
+        
         // Remove '/image/upload/' from the path
         $pathWithoutBase = str_replace('/image/upload/', '', $path);
-
-        // Split the path into version and public_id with format (e.g., 'v1312461204/sample.jpg')
+        
+        // Split the path into parts
         $pathParts = explode('/', $pathWithoutBase);
-
-        // Remove the version part (e.g., 'v1312461204')
-        array_shift($pathParts);
-
-        // Get the public_id with the file extension (e.g., 'sample.jpg')
-        $publicIdWithExtension = implode('/', $pathParts);
-
-        // Remove the file extension (e.g., '.jpg')
-        $publicId = pathinfo($publicIdWithExtension, PATHINFO_FILENAME);
-
-        return $publicId;
+        
+        // Remove the version part (first element)
+        array_shift($pathParts); // Remove the version part
+        
+        // Remove the last part (the file name with extension)
+        $fileNameWithExtension = array_pop($pathParts); // Get the file name
+        $publicIdWithoutExtension = pathinfo($fileNameWithExtension, PATHINFO_FILENAME); // Get just the file name without extension
+        
+        // Return the public ID being preceeded by the public Id
+        return env('FOLDER_FOR_IMAGES_IN_CLOUDINARY') . '/' . $publicIdWithoutExtension ;
     }
+
+    
+    
+
 
     public function deleteProduct(Request $request){
         try{
@@ -513,7 +542,7 @@ class ProductController extends Controller
                 //extract the public id and use it to delete the product in cloudinary
                 $publicId = $this->getPublicIdFromUrl($productImage);
                 //public id extracted...next, delete product image in cloudinary
-                Cloudinary::destroy($publicId);
+                $response = Cloudinary::destroy($publicId);
             }
 
             //delete the product sub image 1
@@ -522,7 +551,8 @@ class ProductController extends Controller
                 //extract the public id and use it to delete the product in cloudinary
                 $publicId = $this->getPublicIdFromUrl($subImage1);
                 //public id extracted...next, delete product image in cloudinary
-                Cloudinary::destroy($publicId);
+                Cloudinary::destroy($publicId, ['invalidate' => true]);
+                
             }
 
             //delete the product sub image 2
@@ -544,10 +574,15 @@ class ProductController extends Controller
             }
 
             $productToDelete->delete();
+
+            // delete the single product from cache
+            Redis::del("singleProduct_{$productId}");
             
             //delete successful, fetch all products and save to cache
             $newProducts = Product::orderBy('created_at', 'desc')->get()->toArray();
             Redis::set("allProducts", json_encode($newProducts, true));
+
+
 
             return response()->json([
                 "code" => "success",
