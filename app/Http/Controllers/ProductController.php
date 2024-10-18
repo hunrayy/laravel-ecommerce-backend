@@ -551,7 +551,9 @@ class ProductController extends Controller
                 //extract the public id and use it to delete the product in cloudinary
                 $publicId = $this->getPublicIdFromUrl($subImage1);
                 //public id extracted...next, delete product image in cloudinary
+                return "hello";
                 Cloudinary::destroy($publicId, ['invalidate' => true]);
+
                 
             }
 
