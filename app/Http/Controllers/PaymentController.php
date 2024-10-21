@@ -15,70 +15,70 @@ class PaymentController extends Controller
 {
     //
     public function makePayment(Request $request){
-        $request->validate([
-            'firstname' => 'required|string',
-            'lastname' => 'required|string',
-            'email' => 'required|email',
-            'address' => 'required|string',
-            'city' => 'required|string',
-            'phoneNumber' => 'required|string',
-            'country' => 'required|string',
-            'state' => 'required|string',
-            'checkoutTotal' => 'required|numeric',
-            'currency' => 'required|string',
-            'expectedDateOfDelivery' => 'required|string'
-        ]);
+        try {   
+            $request->validate([
+                'firstname' => 'required|string',
+                'lastname' => 'required|string',
+                'email' => 'required|email',
+                'address' => 'required|string',
+                'city' => 'required|string',
+                'phoneNumber' => 'required|string',
+                'country' => 'required|string',
+                'state' => 'required|string',
+                'checkoutTotal' => 'required|numeric',
+                'currency' => 'required|string',
+                'expectedDateOfDelivery' => 'required|string'
+            ]);
 
-        $email = $request->input('email');
-        $firstname = $request->input('firstname');
-        $lastname = $request->input('lastname');
-        $address = $request->input('address');
-        $city = $request->input('city');
-        $postalCode = $request->input('postalCode');
-        $phoneNumber = $request->input('phoneNumber');
-        $country = $request->input('country');
-        $state = $request->input('state');
-        $totalPrice = $request->input('checkoutTotal');
-        $currency = $request->input('currency');
-        $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
-        $uniqueId = now()->timestamp; // Similar to Date.now()
+            $email = $request->input('email');
+            $firstname = $request->input('firstname');
+            $lastname = $request->input('lastname');
+            $address = $request->input('address');
+            $city = $request->input('city');
+            $postalCode = $request->input('postalCode');
+            $phoneNumber = $request->input('phoneNumber');
+            $country = $request->input('country');
+            $state = $request->input('state');
+            $totalPrice = $request->input('checkoutTotal');
+            $currency = $request->input('currency');
+            $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
+            $uniqueId = now()->timestamp; // Similar to Date.now()
 
-        // Call createToken method from AuthController
-        $authController = new AuthController(); // Create an instance of AuthController
+            // Call createToken method from AuthController
+            $authController = new AuthController(); // Create an instance of AuthController
 
-        $tokenPayload = [
-            
-            'email' => $email,
-            'firstname' => $firstname,
-            'lastname' => $lastname,
-            'address' => $address,
-            'city' => $city,
-            'postalCode' => $postalCode,
-            'phoneNumber' => $phoneNumber,
-            'country' => $country,
-            'state' => $request->state,
-            'totalPrice' => $totalPrice,
-            'currency' => $currency,
-            'expectedDateOfDelivery' => $expectedDateOfDelivery,
-            'transactionId' => $uniqueId
-        ];
-
-        // Generate token with a 5-minute expiration
-        $createTokenWithDetails = $authController->createToken($tokenPayload, 5 * 60);
-
-        // Flutterwave API payload
-        $payload = [
-            'tx_ref' => 'ref_' . $uniqueId, // Unique transaction reference
-            'amount' => (float)$totalPrice,
-            'currency' => $currency,  // Ensure this currency is supported by Flutterwave
-            'customer' => [
+            $tokenPayload = [
+                
                 'email' => $email,
-                'phone_number' => $phoneNumber,
-                'name' => $firstname . ' ' . $lastname,
-            ],
-            'redirect_url' => env('FRONTEND_URL') . '/payment-success?details=' . $createTokenWithDetails,
-        ];
-        try {
+                'firstname' => $firstname,
+                'lastname' => $lastname,
+                'address' => $address,
+                'city' => $city,
+                'postalCode' => $postalCode,
+                'phoneNumber' => $phoneNumber,
+                'country' => $country,
+                'state' => $request->state,
+                'totalPrice' => $totalPrice,
+                'currency' => $currency,
+                'expectedDateOfDelivery' => $expectedDateOfDelivery,
+                'transactionId' => $uniqueId
+            ];
+
+            // Generate token with a 5-minute expiration
+            $createTokenWithDetails = $authController->createToken($tokenPayload, 5 * 60);
+
+            // Flutterwave API payload
+            $payload = [
+                'tx_ref' => 'ref_' . $uniqueId, // Unique transaction reference
+                'amount' => (float)$totalPrice,
+                'currency' => $currency,  // Ensure this currency is supported by Flutterwave
+                'customer' => [
+                    'email' => $email,
+                    'phone_number' => $phoneNumber,
+                    'name' => $firstname . ' ' . $lastname,
+                ],
+                'redirect_url' => env('FRONTEND_URL') . '/payment-success?details=' . $createTokenWithDetails,
+            ];
             // Make POST request to Flutterwave API
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . env('FLUTTERWAVE_SECRET_KEY'),

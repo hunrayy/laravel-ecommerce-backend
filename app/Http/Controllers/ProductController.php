@@ -608,11 +608,11 @@ class ProductController extends Controller
         $query = $request->query('query');
     
         // Get products from cache if available
-        $cachedProducts = Cache::get('allProducts');
+        $cachedProducts = json_decode(Redis::get('allProducts'), true);
     
         if ($cachedProducts) {
             // Filter cached products based on the query
-            $filteredProducts = $this->filterProducts($cachedProducts, $query);
+            $filteredProducts = $this->filterProducts(collect($cachedProducts), $query);
             
             return response()->json([
                 'message' => 'Products successfully retrieved from cache',
@@ -621,10 +621,10 @@ class ProductController extends Controller
             ]);
         } else {
             // Query the database if products are not found in cache
-            $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get();
+            $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get()->toArray();
     
             // Cache all products for future requests
-            Cache::put('allProducts', $products);
+            // Redis::set('allProducts', $products);
     
             return response()->json([
                 'message' => 'Products successfully retrieved from database',
@@ -632,26 +632,83 @@ class ProductController extends Controller
                 'data' => $products
             ]);
         }
-        // $query = $request->query('query');
-        
-        // // Assume $products contains the results of your search
-        // $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get();
+       
+    }
+    
+    private function filterProducts($products, $query) {
+        return $products->filter(function($product) use ($query) {
+            return stripos($product['productName'], $query) !== false;
+        })->values()->toArray();
+    }
 
-        // return response()->json([
-        //     'message' => 'Product successfully retrieved',
-        //     'code' => 'success',
-        //     'data' => $products
-        // ]);
+    public function getProductDetails(Request $request){
+        $arrayOfIds = $request->query('ids');
+        //retrive products from cache
+        $cachedProducts = json_decode(Redis::get('allProducts'), true);
+        if ($cachedProducts) {
+            // Filter the cached products to only those whose ID is in $arrayOfIds
+            $matchedProducts = array_filter($cachedProducts, function ($product) use ($arrayOfIds) {
+                return in_array($product['id'], $arrayOfIds); // Check if product id exists in arrayOfIds
+            });
+
+            // Reset keys to ensure it's seen as an indexed array
+            $matchedProducts = array_values($matchedProducts);
+    
+            return response()->json([
+                'message' => 'product details successfully retrieved from cache',
+                'code' => 'success',
+                'data' => $matchedProducts
+            ]);
+        }
+        //no product in cache, query the database for products
+        $allProducts = Product::all()->toArray();
+
+        // Filter the products to only those whose ID is in $arrayOfIds
+        $matchedProducts = array_filter($allProducts, function ($product) use ($arrayOfIds) {
+            return in_array($product['id'], $arrayOfIds); // Check if product id exists in arrayOfIds
+        });
+
+        return response()->json([
+            'message' => 'product details successfully retrieved from database',
+            'code' => 'success',
+            'data' => $matchedProducts
+        ]);
+    }
+
+    // $query = $request->query('query');
+    
+    // // Assume $products contains the results of your search
+    // $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get();
+
+    // return response()->json([
+    //     'message' => 'Product successfully retrieved',
+    //     'code' => 'success',
+    //     'data' => $products
+    // ]);
 
 
-        
-        // $queryWords = explode(' ', strtolower($query)); // Split query into words
-        
-        // Check cache first
-        // $cachedProducts = Cache::get('products');
+    
+    // $queryWords = explode(' ', strtolower($query)); // Split query into words
+    
+    // Check cache first
+    // $cachedProducts = Cache::get('products');
 
-        // if ($cachedProducts) {
-        //     // Filter products from the cache
+    // if ($cachedProducts) {
+    //     // Filter products from the cache
+    //     $filteredProducts = $this->filterProducts($cachedProducts, $queryWords);
+    //     return response()->json([
+    //         'message' => 'Product successfully retrieved',
+    //         'code' => 'success',
+    //         'data' => $filteredProducts
+    //     ]);
+    // } else {
+    //     // Fetch products from the database if not in cache
+    //     $responseData = $this->getAllProducts($request);
+
+    //     // Decode the response data
+    //     $response = $responseData->getData();
+        // if ($response->code === 'success') {
+        //     $cachedProducts = $response->data; // Extract data from the response
         //     $filteredProducts = $this->filterProducts($cachedProducts, $queryWords);
         //     return response()->json([
         //         'message' => 'Product successfully retrieved',
@@ -659,29 +716,14 @@ class ProductController extends Controller
         //         'data' => $filteredProducts
         //     ]);
         // } else {
-        //     // Fetch products from the database if not in cache
-        //     $responseData = $this->getAllProducts($request);
-
-        //     // Decode the response data
-        //     $response = $responseData->getData();
-            // if ($response->code === 'success') {
-            //     $cachedProducts = $response->data; // Extract data from the response
-            //     $filteredProducts = $this->filterProducts($cachedProducts, $queryWords);
-            //     return response()->json([
-            //         'message' => 'Product successfully retrieved',
-            //         'code' => 'success',
-            //         'data' => $filteredProducts
-            //     ]);
-            // } else {
-            //     // Handle the error if products could not be retrieved
-            //     return response()->json([
-            //         'code' => 'error',
-            //         'message' => 'An error occurred while retrieving products',
-            //         'reason' => $response->reason
-            //     ]);
-            // }
+        //     // Handle the error if products could not be retrieved
+        //     return response()->json([
+        //         'code' => 'error',
+        //         'message' => 'An error occurred while retrieving products',
+        //         'reason' => $response->reason
+        //     ]);
         // }
-    }
+    // }
 
 
     // private function filterProducts($products, $queryWords)
@@ -696,9 +738,4 @@ class ProductController extends Controller
     //     });
     // }
 
-    private function filterProducts($products, $query) {
-        return $products->filter(function($product) use ($query) {
-            return stripos($product['productName'], $query) !== false;
-        })->toArray();
-    }
 }

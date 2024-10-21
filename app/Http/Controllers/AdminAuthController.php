@@ -36,6 +36,8 @@ class AdminAuthController extends Controller
 
             // Check if the admin exists
             $admin = Admin::where('email', $email)->first();
+            $shipping = Shipping::first();
+
             if (!$admin) {
                 return response()->json(['message' => 'Invalid email/password', 'code' => 'error']);
             }
@@ -70,11 +72,11 @@ class AdminAuthController extends Controller
                     'user' => $admin->user,
                     'is_an_admin' => $admin->is_an_admin,
                     'token' => $loginToken,
-                    'countryOfWarehouseLocation' => $admin->countryOfWarehouseLocation,
-                    'domesticShippingFeeInNaira' => $admin->domesticShippingFeeInNaira,
-                    'internationalShippingFeeInNaira' => $admin->internationalShippingFeeInNaira,
-                    'numberOfDaysForDomesticDelivery' => $admin->numberOfDaysForDomesticDelivery,
-                    'numberOfDaysForInternationalDelivery' => $admin->numberOfDaysForInternationalDelivery
+                    'countryOfWarehouseLocation' => $shipping->countryOfWarehouseLocation,
+                    'domesticShippingFeeInNaira' => $shipping->domesticShippingFeeInNaira,
+                    'internationalShippingFeeInNaira' => $shipping->internationalShippingFeeInNaira,
+                    'numberOfDaysForDomesticDelivery' => $shipping->numberOfDaysForDomesticDelivery,
+                    'numberOfDaysForInternationalDelivery' => $shipping->numberOfDaysForInternationalDelivery
                 ],
             ]);
 

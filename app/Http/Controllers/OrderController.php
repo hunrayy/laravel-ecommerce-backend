@@ -53,6 +53,7 @@ class OrderController extends Controller
             $numberFormatOfTotalPrice = str_replace(',', '', $totalPrice); // Remove commas
             $orderDetails = [
                 'tracking_id' => $tracking_id,
+                'transaction_id' => $transactionId,
                 'user_id' => $user_id,
                 'firstname' => $firstname,
                 'lastname' => $lastname,
@@ -77,15 +78,15 @@ class OrderController extends Controller
 
             $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
                 return "
-                <div style='padding: 20px; text-align: center; background: #f4f4f4'>
+                <div style='padding: 20px; text-align: center; background: #f4f4f4; max-width: 300px;'>
                     <div>
-                        <img src='{$item['img']}' alt='" . htmlspecialchars($item['name']) . "' style='width: 80px; height: 80px;'>
+                        <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 80px; height: 80px;'>
                     </div>
                     <div style='text-align: center;'>
-                        <h4 style='margin: 0;'>" . htmlspecialchars($item['name']) . "</h4>
+                        <h4 style='margin: 0;'>" . htmlspecialchars($item['productName']) . "</h4>
                         <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
                         <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
-                        <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['price']) . "</5>
+                        <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['updatedPrice']) . "</5>
                     </div>
                 </div>
                     ";

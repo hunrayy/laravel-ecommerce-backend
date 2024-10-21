@@ -12,7 +12,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tracking_id', 'user_id', 'firstname', 'lastname', 'email', 'country', 'state', 
+        'tracking_id', 'transaction_id', 'user_id', 'firstname', 'lastname', 'email', 'country', 'state', 
         'address', 'city', 'postalCode', 'phoneNumber', 'totalPrice', 
         'currency', 'products', 'status'
     ];

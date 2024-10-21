@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tracking_id');
+            $table->string('transaction_id');
             $table->foreignId('user_id')->constrained('users');
             $table->string('firstname');
             $table->string('lastname');
