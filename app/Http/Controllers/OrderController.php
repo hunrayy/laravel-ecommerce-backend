@@ -86,7 +86,7 @@ class OrderController extends Controller
                         <h4 style='margin: 0;'>" . htmlspecialchars($item['productName']) . "</h4>
                         <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
                         <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
-                        <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['updatedPrice']) . "</5>
+                        <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['update']) . "</5>
                     </div>
                 </div>
                     ";
@@ -95,44 +95,64 @@ class OrderController extends Controller
             $postalCodeSection = $postalCode ? "<b>Postal code:</b> {$postalCode}<br/>" : '';
 
             $body = "
-                <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
-                    <h2 style='color: #4CAF50;'>Payment Confirmation</h2>
-                    <p style='font-size: 16px;'>
-                        <b>Dear {$firstname},</b>
-                    </p>
-                    <p>
-                        Thank you for your payment! We're pleased to inform you that your transaction has been successfully processed.
-                    </p>
-                    <p>
-                        <b>Tracking ID:</b> {$tracking_id}<br/>
-                        <b>Transaction ID:</b> {$transactionId}<br/>
-                        <b>Total Price:</b> {$totalPrice}<br/>
-                    </p>
-                    <h4 style='color: #333;'>Order Summary:</h4>
-                    <div style='display: flex; flex-wrap: wrap; gap: 10px;'>
-                        {$orderSummary}
-                    </div>
-                    <p>
-                        <p><b>Shipping information:</b></p>
-                        <b>Country:</b> {$country}<br/>
-                        <b>State:</b> {$state}<br/>
-                        <b>City:</b> {$city}<br/>
-                        <b>Address:</b> {$address}<br/>
-                        {$postalCodeSection} <!-- Postal Code section will only appear if not null -->
-                        <b>Expected date of delivery:</b> {$expectedDateOfDelivery}
-                    </p>
-                    <p>
-                        <b>Contact information</b><br/>
-                        <b>Phone number:</b> {$phoneNumber}<br/>
-                    </p>
-                    <p>
-                        If you have any question or need assistance, feel free to contact our support team.
-                    </p>
-                    <p style='margin-top: 20px;'>
-                        Thank you for choosing us! We look forward to serving you again.
-                    </p>
-                </div>
-            ";
+                        <div style=font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;'>
+                            <div style='background-color: #fff; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);'>
+                                <div style='text-align: center; margin-bottom: 20px;'>
+                                    <h1 style='margin: 0; color: #333;'>Your Order Receipt</h1>
+                                    <p style='margin: 5px 0; color: #777;'>Thank you for shopping with us!</p>
+                                </div>
+
+                                <div>
+                                    <p>Dear {$firstname},</p>
+                                    <p>Thank you for your payment! We're pleased to inform you that your transaction has been successfully processed.</p>
+                                </div>
+                                <hr />
+
+                                <div style='display: flex; font-size: 12px;'>
+                                    <div style='margin-right: 20px; flex: 1;'>
+                                        <h5 style='color: purple;''>Order Details</h5>
+                                        <p style='margin: 5px 0;'><strong>Tracking ID:</strong> {$tracking_id}</p>
+                                        <p style='margin: 5px 0;'><strong>Transaction ID:</strong> {$transactionId}</p>
+                                        <p style='margin: 5px 0;'><strong>Phone number:</strong> {$phoneNumber}</p>
+                                        <p><strong>Date:</strong> October 21, 2024</p>
+                                    </div>
+                                    <div style='flex: 1;'>
+                                        <h5 style='color: purple;'>Shipping Details</h5>
+                                        <p style='margin: 5px 0;'><strong>Country:</strong> {$country}</p>
+                                        <p style='margin: 5px 0;'><strong>State:</strong> Georgia</p>
+                                        <p style='margin: 5px 0;'><strong>City:</strong> Columbia</p>
+                                        <p style='margin: 5px 0;'><strong>Address:</strong> 92 Bungana Drive</p>
+                                        <p style='margin: 5px 0;'><strong>Postal code:</strong> 123456</p>
+                                        <p><strong>Expected date of delivery:</strong> {$expectedDateOfDelivery}</p>
+                                    </div>
+                                </div>
+                                <hr />
+                                <h6 style='font-weight: bold;'>Summary</h6>
+
+                                <div style='display: flex; border: 1px solid #ddd; border-radius: 10px; padding: 10px; margin-bottom: 20px; align-items: center; background-color: #fafafa;'>
+                                    <img src='https://via.placeholder.com/80' alt='Product Image' style='width: 80px; height: 80px; border-radius: 8px; margin-right: 20px;' />
+                                    <div style='flex-grow: 1;'>
+                                        <h3 style='margin: 0; color: #333; font-size: 18px;'>Product Name 1</h3>
+                                        <p style='margin: 5px 0; color: #777; font-size: 14px;'>Quantity: 2</p>
+                                        <p style='margin: 5px 0; color: #777; font-size: 14px;'>Price: $50.00</p>
+                                    </div>
+                                    <div style='text-align: right;'>
+                                        <p style='margin: 5px 0; color: #555; font-size: 14px;'>Total: $100.00</p>
+                                    </div>
+                                </div>
+
+                                <div style='text-align: right;'>
+                                    <h5 style='margin: 0; color: #333;'>Total: $185.00</h5>
+                                </div>
+
+                                <div style='background: purple; padding: 10px; text-align: center; color: white; margin-top: 20px;'>
+                                    <p>If you have any questions or need assistance, feel free to contact our support team.</p>
+                                    <p>Thank you for choosing us! We look forward to serving you again.</p>
+                                </div>
+                            </div>
+                        </div>
+                    ";
+
 
             // Send the email
             $mailClass = new MailController();
