@@ -41,7 +41,8 @@ class OrderController extends Controller
             $currency = $verifyToken->currency;
             $expectedDateOfDelivery = $verifyToken->expectedDateOfDelivery;
             $transactionId = $verifyToken->transactionId;
-            $products = $request->input('cartProducts'); // Assuming products are passed from the frontend
+            // $products = $request->input('cartProducts'); // Assuming products are passed from the frontend
+            $products = $verifyToken->cartProducts;
 
             // Fetch user_id from the email passed in the token
             $user = User::where('email', $email)->firstOrFail(); 
@@ -78,21 +79,21 @@ class OrderController extends Controller
 
             $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
                 return "
-                <div style='padding: 20px; text-align: center; background: #f4f4f4; max-width: 300px;'>
-                    <div>
-                        <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 80px; height: 80px;'>
-                    </div>
-                    <div style='text-align: center;'>
-                        <h4 style='margin: 0;'>" . htmlspecialchars($item['productName']) . "</h4>
-                        <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
-                        <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
-                        <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['update']) . "</5>
-                    </div>
-                </div>
+                        <div style='display: flex; border: 1px solid #ddd; border-radius: 10px; padding: 10px; margin-bottom: 20px; align-items: center; background-color: #fafafa;'>
+                                        <img src='{$item->productImage}' alt='" . htmlspecialchars($item->productName) . "' style='width: 100%; height: auto; max-width: 80px; object-fit: cover; border-radius: 8px; margin-right: 20px;' />
+                                        <div style='flex-grow: 1;'>
+                                            <h3 style='margin: 0; color: #333; font-size: 18px;'>" . htmlspecialchars($item->productName) . "</h3>
+                                            <p style='margin: 5px 0; color: #777; font-size: 14px;'>Length: " . htmlspecialchars($item->lengthPicked) . "</p>
+                                            <p style='margin: 5px 0; color: #777; font-size: 14px;'>Quantity: " . htmlspecialchars($item->quantity) . "</p>
+                                            <p style='margin: 5px 0; color: #777; font-size: 14px;'>Price: {$currency} {$item->updatedPrice}</p>
+                                        </div>
+                        </div>
                     ";
+                    
             }, $products, array_keys($products)));
 
-            $postalCodeSection = $postalCode ? "<b>Postal code:</b> {$postalCode}<br/>" : '';
+            $postalCodeSection = $postalCode ? "<p style='margin: 5px 0;'><strong>Postal code:</strong> {$postalCode}</p>" : '';
+
 
             $body = "
                         <div style=font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;'>
@@ -108,41 +109,28 @@ class OrderController extends Controller
                                 </div>
                                 <hr />
 
-                                <div style='display: flex; font-size: 12px;'>
+                                <div style='display: flex; font-size: 15px;'>
                                     <div style='margin-right: 20px; flex: 1;'>
-                                        <h5 style='color: purple;''>Order Details</h5>
+                                        <p style='color: purple;''><strong>Order Details</strong></p>
                                         <p style='margin: 5px 0;'><strong>Tracking ID:</strong> {$tracking_id}</p>
                                         <p style='margin: 5px 0;'><strong>Transaction ID:</strong> {$transactionId}</p>
                                         <p style='margin: 5px 0;'><strong>Phone number:</strong> {$phoneNumber}</p>
-                                        <p><strong>Date:</strong> October 21, 2024</p>
                                     </div>
                                     <div style='flex: 1;'>
-                                        <h5 style='color: purple;'>Shipping Details</h5>
+                                        <p style='color: purple;'><strong>Shipping Details</strong></p>
                                         <p style='margin: 5px 0;'><strong>Country:</strong> {$country}</p>
-                                        <p style='margin: 5px 0;'><strong>State:</strong> Georgia</p>
-                                        <p style='margin: 5px 0;'><strong>City:</strong> Columbia</p>
-                                        <p style='margin: 5px 0;'><strong>Address:</strong> 92 Bungana Drive</p>
-                                        <p style='margin: 5px 0;'><strong>Postal code:</strong> 123456</p>
+                                        <p style='margin: 5px 0;'><strong>State:</strong> {$state}</p>
+                                        <p style='margin: 5px 0;'><strong>City:</strong> {$city}</p>
+                                        <p style='margin: 5px 0;'><strong>Address:</strong> {$address}</p>
+                                        {$postalCodeSection}
                                         <p><strong>Expected date of delivery:</strong> {$expectedDateOfDelivery}</p>
                                     </div>
                                 </div>
                                 <hr />
-                                <h6 style='font-weight: bold;'>Summary</h6>
-
-                                <div style='display: flex; border: 1px solid #ddd; border-radius: 10px; padding: 10px; margin-bottom: 20px; align-items: center; background-color: #fafafa;'>
-                                    <img src='https://via.placeholder.com/80' alt='Product Image' style='width: 80px; height: 80px; border-radius: 8px; margin-right: 20px;' />
-                                    <div style='flex-grow: 1;'>
-                                        <h3 style='margin: 0; color: #333; font-size: 18px;'>Product Name 1</h3>
-                                        <p style='margin: 5px 0; color: #777; font-size: 14px;'>Quantity: 2</p>
-                                        <p style='margin: 5px 0; color: #777; font-size: 14px;'>Price: $50.00</p>
-                                    </div>
-                                    <div style='text-align: right;'>
-                                        <p style='margin: 5px 0; color: #555; font-size: 14px;'>Total: $100.00</p>
-                                    </div>
-                                </div>
-
+                                <h4 style='font-weight: bold;'>Summary</h4>
+                                {$orderSummary}
                                 <div style='text-align: right;'>
-                                    <h5 style='margin: 0; color: #333;'>Total: $185.00</h5>
+                                    <p style='margin: 0; color: #333;'><strong>Total: {$currency} {$totalPrice}</strong></p>
                                 </div>
 
                                 <div style='background: purple; padding: 10px; text-align: center; color: white; margin-top: 20px;'>
@@ -152,7 +140,6 @@ class OrderController extends Controller
                             </div>
                         </div>
                     ";
-
 
             // Send the email
             $mailClass = new MailController();
@@ -316,10 +303,10 @@ class OrderController extends Controller
                 return "
                 <div style='padding: 20px; text-align: center; background: #f4f4f4'>
                     <div>
-                        <img src='{$item['img']}' alt='" . htmlspecialchars($item['name']) . "' style='width: 80px; height: 80px;'>
+                        <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 80px; height: 80px;'>
                     </div>
                     <div style='text-align: center;'>
-                        <h4 style='margin: 0;'>" . htmlspecialchars($item['name']) . "</h4>
+                        <h4 style='margin: 0;'>" . htmlspecialchars($item['productName']) . "</h4>
                         <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
                         <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
                         <h5 style='margin: 0;'><b>Price:</b> {$currency} " . number_format((int)$item['price']) . "</5>

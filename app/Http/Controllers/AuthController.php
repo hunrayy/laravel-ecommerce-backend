@@ -12,6 +12,9 @@ use PHPMailer\PHPMailer\Exception; //for catching errors
 use Illuminate\Support\Facades\Mail; //for mail sending
 use App\Http\Controllers\MailController;
 
+use Illuminate\Support\Facades\Redis;
+
+
 use Illuminate\Support\Facades\Validator; //for validating the request coming in
 use Illuminate\Support\Facades\Hash; //for password hahsing
 use Illuminate\Support\Facades\Log; //for logging error to the terminal
@@ -240,6 +243,7 @@ class AuthController extends Controller
             }
             //password match...create JWT login token for user
             $payload = [
+                'id' => $user->id,
                 'email' => $user->email,
                 'password' => $user->password
             ];
@@ -300,20 +304,39 @@ class AuthController extends Controller
     }
 
 
-    public function getUserDetails(Request $request){
+    public function getUserOrders(Request $request){
         try{
             $email = $request->input('user_email');
+            // return $email;
 
             //get the user details using email
-            $userDetails = User::where('email', $email)->first();
+            // $userDetails = User::where('email', $email)->first();
 
-            $userId = $userDetails->id;
+            // $userId = $userDetails->id;
+            $userId = $request->user_id;
+
             //use the id obtained to retrieved a list of the user's order
 
-            $userOrder = Order::where('user_id', $userId)->get();
+            //check if user order exists in cache
+            $cachedOrders = Redis::get($userId . '_orders');
+            if($cachedOrders){
+                return response()->json([
+                    "message" => "User order successfully retrieved from cache",
+                    "code" => "success",
+                    // "data" => $userOrder ? $userOrder :     []
+                    "data" => json_decode($cachedOrders)
+                ]);
+            }
+
+            //user order doesn't exist in cache, query the database
+
+            $userOrder = Order::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+            
+            //save fetched orders to cache
+            Redis::set($userId . '_orders', json_encode($userOrder));
 
             return response()->json([
-                "message" => "User order retrieved successfully",
+                "message" => "User order successfully retrieved from database",
                 "code" => "success",
                 "data" => $userOrder ? $userOrder :     []
             ]);

@@ -15,6 +15,7 @@ class PaymentController extends Controller
 {
     //
     public function makePayment(Request $request){
+        return $request->all();
         try {   
             $request->validate([
                 'firstname' => 'required|string',
@@ -27,7 +28,8 @@ class PaymentController extends Controller
                 'state' => 'required|string',
                 'checkoutTotal' => 'required|numeric',
                 'currency' => 'required|string',
-                'expectedDateOfDelivery' => 'required|string'
+                'expectedDateOfDelivery' => 'required|string',
+                'cartProducts' => 'required'
             ]);
 
             $email = $request->input('email');
@@ -42,6 +44,7 @@ class PaymentController extends Controller
             $totalPrice = $request->input('checkoutTotal');
             $currency = $request->input('currency');
             $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
+            $cartProducts = $request->input('cartProducts');
             $uniqueId = now()->timestamp; // Similar to Date.now()
 
             // Call createToken method from AuthController
@@ -59,6 +62,7 @@ class PaymentController extends Controller
                 'country' => $country,
                 'state' => $request->state,
                 'totalPrice' => $totalPrice,
+                'cartProducts' => $cartProducts,
                 'currency' => $currency,
                 'expectedDateOfDelivery' => $expectedDateOfDelivery,
                 'transactionId' => $uniqueId
@@ -101,14 +105,14 @@ class PaymentController extends Controller
                 'message' => 'Error creating payment',
                 'code' => 'error',
                 'reason' => $error->getMessage()
-            ], 500);
+            ]);
         }
     }
 
     public function validatePayment(Request $request){
         // Extract the 'tx_ref' from the request
         $tx_ref = $request->query('tx_ref');
-        \Log::info("from tx_ref", ['tx_ref' => $tx_ref]);
+        // \Log::info("from tx_ref", ['tx_ref' => $tx_ref]);
 
         // Check if 'tx_ref' is missing
         if (!$tx_ref) {
@@ -144,8 +148,8 @@ class PaymentController extends Controller
             } else {
                 return response()->json([
                     'code' => 'error',
-                    'message' => 'Payment verification failed'
-                ], 400);
+                    'message' => $response->json('message')
+                ]);
             }
 
         } catch (\Exception $error) {
@@ -157,8 +161,8 @@ class PaymentController extends Controller
             // Handle any errors from the request
             return response()->json([
                 'code' => 'error',
-                'message' => $error->getMessage() ?: 'Error validating payment'
-            ], 500);
+                'message' => $error->getMessage() ?: 'Error validating payment',
+            ]);
         }
     }
 

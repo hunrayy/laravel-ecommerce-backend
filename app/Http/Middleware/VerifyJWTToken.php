@@ -19,7 +19,8 @@ class VerifyJWTToken
     {
         $authorization = $request->header("Authorization");
 
-        if (!$authorization) {
+
+        if (!$authorization || $authorization == 'Bearer undefined') {
             return response()->json([
                 'code' => 'invalid-jwt',
                 'message' => 'Authorization header not found'
@@ -35,6 +36,7 @@ class VerifyJWTToken
 
             // Attach user email to the request
             $request->merge(['user_email' => $decodedToken->email]);
+            $request->merge(['user_id' => $decodedToken->id]);
 
             // If verification is successful, continue the request
             return $next($request);
