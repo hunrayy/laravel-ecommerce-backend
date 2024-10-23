@@ -4,19 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
-
-class Order extends Model
+class PaystackTransaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'tracking_id', 'transaction_id', 'user_id', 'firstname', 'lastname', 'email', 'country', 'state', 
-        'address', 'city', 'postalCode', 'phoneNumber', 'totalPrice', 'shippingFee', 'subtotal', 
-        'currency', 'products', 'expectedDateOfDelivery', 'status'
-    ];
+    // Specify the table name if it's not the default plural form of the model name
+    protected $table = 'paystack_transactions';
 
+    // Specify the fields that can be mass-assigned
+    protected $fillable = [
+        'reference', 
+        'amount', 
+        'status', 
+        'payment_channel'
+    ];
+    // Disable automatic timestamp management by Laravel, since you handle 'created_at' manually
+    public $timestamps = false;
+    
     // Disable the auto-incrementing feature
     public $incrementing = false;
 

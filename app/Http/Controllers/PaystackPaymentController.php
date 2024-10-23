@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CurrencyController;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -12,14 +11,12 @@ use Illuminate\Support\Str;
 
 use App\Models\User;
 
-class PaymentController extends Controller
+class PaystackPaymentController extends Controller
 {
+    
     //
-    public function makePayment(Request $request){
-        // return $request->all();
-        $currencyClass = new CurrencyController();
-        // return $currencyClass->convertCurrency('100000', 'USD');
-
+    public function makePayment(Request $request)
+    {
         try {   
             $request->validate([
                 'firstname' => 'required|string',
@@ -51,13 +48,12 @@ class PaymentController extends Controller
             $currency = $request->input('currency');
             $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
             $cartProducts = $request->input('cartProducts');
-            $uniqueId = now()->timestamp; // Similar to Date.now()
+            $uniqueId = now()->timestamp;
 
             // Call createToken method from AuthController
-            $authController = new AuthController(); // Create an instance of AuthController
+            $authController = new AuthController();
 
             $tokenPayload = [
-                
                 'email' => $email,
                 'firstname' => $firstname,
                 'lastname' => $lastname,
@@ -79,30 +75,40 @@ class PaymentController extends Controller
             // Generate token with a 5-minute expiration
             $createTokenWithDetails = $authController->createToken($tokenPayload, 5 * 60);
 
-            // Flutterwave API payload
+            // Paystack API payload
             $payload = [
-                'tx_ref' => 'ref_' . $uniqueId, // Unique transaction reference
-                'amount' => (float)$totalPrice,
-                'currency' => $currency,  // Ensure this currency is supported by Flutterwave
-                'customer' => [
-                    'email' => $email,
+                'email' => $email,
+                'amount' => (int)($totalPrice * 100), // Paystack requires amount in kobo (Naira subunit)
+                'currency' => $currency,  // e.g., "NGN"
+                'reference' => 'ref_' . $uniqueId,  // Unique transaction reference
+                'callback_url' => env('FRONTEND_URL') . '/payment-success?details=' . $createTokenWithDetails,
+                'metadata' => [
+                    'firstname' => $firstname,
+                    'lastname' => $lastname,
                     'phone_number' => $phoneNumber,
-                    'name' => $firstname . ' ' . $lastname,
+                    'address' => $address,
+                    'city' => $city,
+                    'state' => $state,
+                    'country' => $country,
+                    'shippingFee' => $shippingFee,
+                    'expectedDateOfDelivery' => $expectedDateOfDelivery,
+                    'cartProducts' => $cartProducts
                 ],
-                'redirect_url' => env('FRONTEND_URL') . '/payment-success?details=' . $createTokenWithDetails,
             ];
-            // Make POST request to Flutterwave API
+
+            // Make POST request to Paystack API
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . env('FLUTTERWAVE_SECRET_KEY'),
-                'Content-Type' => 'application/json'
-            ])->post('https://api.flutterwave.com/v3/payments', $payload);
-            
+                'Authorization' => 'Bearer ' . env('PAYSTACK_SECRET_KEY'),
+                'Content-Type' => 'application/json',
+            ])->post('https://api.paystack.co/transaction/initialize', $payload);
+
             // Check if the request was successful
             if ($response->successful()) {
-                return $response->json(); // Return the response data from Flutterwave
+                // Redirect user to Paystack payment page
+                return $response->json();
             } else {
                 return response()->json([
-                    'message' => 'Error creating payment',
+                    'message' => 'Error initiating payment',
                     'code' => 'error',
                     'reason' => $response->json()['message']
                 ]);
@@ -117,13 +123,14 @@ class PaymentController extends Controller
         }
     }
 
-    public function validatePayment(Request $request){
-        // Extract the 'tx_ref' from the request
-        $tx_ref = $request->query('tx_ref');
-        // \Log::info("from tx_ref", ['tx_ref' => $tx_ref]);
 
-        // Check if 'tx_ref' is missing
-        if (!$tx_ref) {
+    public function validatePayment(Request $request)
+    {
+        // Extract the 'reference' from the request (Paystack uses 'reference')
+        $reference = $request->query('reference');
+
+        // Check if 'reference' is missing
+        if (!$reference) {
             return response()->json([
                 'code' => 'error',
                 'reason' => 'Transaction reference is required.'
@@ -131,28 +138,33 @@ class PaymentController extends Controller
         }
 
         try {
-            // Make a GET request to Flutterwave's API to verify the transaction
+            // Make a GET request to Paystack's API to verify the transaction
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . env('FLUTTERWAVE_SECRET_KEY'),
-            ])->get('https://api.flutterwave.com/v3/transactions/verify_by_reference', [
-                'tx_ref' => $tx_ref
-            ]);
+                'Authorization' => 'Bearer ' . env('PAYSTACK_SECRET_KEY'),
+            ])->get('https://api.paystack.co/transaction/verify/' . $reference);
 
-            \Log::info("from flutterwave", ['response' => $response->json()]);
+            \Log::info("from Paystack", ['response' => $response->json()]);
 
             // Check if the response indicates success
-            if ($response->json('status') === 'success') {
+            if ($response->json('status') === true) {
                 $data = $response->json('data');
 
-                // Process payment (You can implement the processPayment logic)
-                return $this->processPayment(
-                    $data['flw_ref'],
-                    $data['tx_ref'],
-                    $data['amount'],
-                    'successful',
-                    $data['created_at'],
-                    $data['payment_type']
-                );
+                // Check if payment was successful
+                if ($data['status'] === 'success') {
+                    // Process payment (You can implement the processPayment logic)
+                    return $this->processPayment(
+                        $data['reference'],
+                        $data['amount'] / 100, // Convert from kobo to the actual amount
+                        'successful',
+                        $data['paid_at'],
+                        $data['channel'] // payment channel used (card, bank, etc.)
+                    );
+                } else {
+                    return response()->json([
+                        'code' => 'error',
+                        'message' => 'Payment verification failed.'
+                    ]);
+                }
             } else {
                 return response()->json([
                     'code' => 'error',
@@ -162,7 +174,7 @@ class PaymentController extends Controller
 
         } catch (\Exception $error) {
             // Log detailed error information for better debugging
-            \Log::error('Error response from Flutterwave', [
+            \Log::error('Error response from Paystack', [
                 'message' => $error->getMessage()
             ]);
 
@@ -174,13 +186,13 @@ class PaymentController extends Controller
         }
     }
 
-    public function processPayment($flw_ref, $tx_ref, $amount, $status, $created_at, $payment_type)
+
+    public function processPayment($reference, $amount, $status, $paid_at, $channel)
     {
         try {
-            // Check if a transaction with the same flw_ref or tx_ref already exists
-            $existingTransaction = DB::table('transactions')
-                ->where('flw_ref', $flw_ref)
-                ->orWhere('tx_ref', $tx_ref)
+            // Check if a transaction with the same reference already exists
+            $existingTransaction = DB::table('paystack_transactions')
+                ->where('reference', $reference)
                 ->first();
 
             if ($existingTransaction) {
@@ -191,13 +203,12 @@ class PaymentController extends Controller
             }
 
             // Insert the transaction into the 'transactions' table
-            DB::table('transactions')->insert([
+            DB::table('paystack_transactions')->insert([
                 'id' => (string) Str::uuid(), // Generate and cast the UUID to string
-                'flw_ref' => $flw_ref,
-                'tx_ref' => $tx_ref,
-                'amount' => $amount,
-                'status' => $status,
-                'payment_type' => $payment_type
+                'reference' => $reference,  // Paystack's unique transaction reference
+                'amount' => $amount, // Amount in base currency (kobo if NGN)
+                'status' => $status, // The transaction status, e.g., 'success'
+                'payment_channel' => $channel, // Payment channel like card, bank, etc.
             ]);
 
             return response()->json([
@@ -208,8 +219,7 @@ class PaymentController extends Controller
         } catch (\Exception $error) {
             // Log the error for debugging purposes
             Log::error('Error processing payment', [
-                'flw_ref' => $flw_ref,
-                'tx_ref' => $tx_ref,
+                'reference' => $reference,
                 'error' => $error->getMessage()
             ]);
 
@@ -218,9 +228,8 @@ class PaymentController extends Controller
                 'code' => 'error',
                 'message' => 'An error occurred while processing the transaction',
                 'reason' => $error->getMessage()
-            ], 500);
+            ]);
         }
     }
-
 
 }

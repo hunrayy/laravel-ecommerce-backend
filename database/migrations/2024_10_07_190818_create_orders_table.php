@@ -26,8 +26,11 @@ return new class extends Migration
             $table->string('postalCode')->nullable();
             $table->string('phoneNumber');
             $table->decimal('totalPrice', 10, 2);
+            $table->decimal('subtotal', 10, 2);
+            $table->decimal('shippingFee', 10, 2);
             $table->string('currency');
             $table->json('products');
+            $table->string('expectedDateOfDelivery');
             $table->string('status');
             $table->timestamps();
         });
