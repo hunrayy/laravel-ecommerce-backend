@@ -61,20 +61,20 @@ Route::get('/get-product-details', [productController::class, 'getProductDetails
 
 
 // -----------------------------------admin routes----------------------------------------//
-Route::post('/admin/login', [AdminAuthController::class, 'adminLogin']);
-Route::post('/admin-send-password-reset-link', [AdminPasswordResetController::class, 'sendAdminPasswordResetLink']);
-Route::post('/admin-reset-password', [AdminPasswordResetController::class, 'AdminResetPassword'])->middleware(VerifyJWTToken::class);
-Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
-Route::get('/admin/get-page', [GetPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/edit-page', [EditPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
-Route::post('/admin-settings', [AdminAuthController::class, 'settings'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/update-product', [ProductController::class, 'updateProduct'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/login', [AdminAuthController::class, 'adminLogin']);
+// Route::post('/admin-send-password-reset-link', [AdminPasswordResetController::class, 'sendAdminPasswordResetLink']);
+// Route::post('/admin-reset-password', [AdminPasswordResetController::class, 'AdminResetPassword'])->middleware(VerifyJWTToken::class);
+// Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
+// Route::get('/admin/get-page', [GetPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/edit-page', [EditPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin-settings', [AdminAuthController::class, 'settings'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/update-product', [ProductController::class, 'updateProduct'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct'])->middleware(VerifyAdminToken::class);
 
-Route::get('/admin/get-orders', [OrderController::class, 'getOrders'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/change-order-status-to-out-for-delivery', [OrderController::class, 'ChangeOrderStatusToOutForDelivery'])->middleware(VerifyAdminToken::class);
-Route::post('/admin/change-order-status-to-delivered', [OrderController::class, 'ChangeOrderStatusToDelivered'])->middleware(VerifyAdminToken::class);
+// Route::get('/admin/get-orders', [OrderController::class, 'getOrders'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/change-order-status-to-out-for-delivery', [OrderController::class, 'ChangeOrderStatusToOutForDelivery'])->middleware(VerifyAdminToken::class);
+// Route::post('/admin/change-order-status-to-delivered', [OrderController::class, 'ChangeOrderStatusToDelivered'])->middleware(VerifyAdminToken::class);
 
 
 
