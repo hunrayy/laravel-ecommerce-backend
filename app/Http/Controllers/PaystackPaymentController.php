@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,8 @@ class PaystackPaymentController extends Controller
     //
     public function makePayment(Request $request)
     {
-        try {   
+        return $request->user_id;
+        try {  
             $request->validate([
                 'firstname' => 'required|string',
                 'lastname' => 'required|string',
@@ -32,22 +34,38 @@ class PaystackPaymentController extends Controller
                 'expectedDateOfDelivery' => 'required|string',
                 'cartProducts' => 'required'
             ]);
+            // run a function to convert the price of each cart item to the desired currency passed
+            $currencyClass = new CurrencyController();
+            $cartProducts = $request->cartProducts; // Get the products from the request
+        
+            // Loop through each product and update the price
+            foreach ($cartProducts as $index => $product) {
+                // Convert the currency
+                $convertedCurrency = $currencyClass->convertCurrency($product['productPriceInNaira'], $request->currency);
+                
+                // Add the new price directly to each product
+                $cartProducts[$index]['updatedPrice'] = number_format($convertedCurrency, 2, '.', ',');
+            }
+        
+            // Now cartProducts contains each product with its new price added
+            $updatedRequestData = array_merge($request->all(), ['cartProducts' => $cartProducts]);
 
-            $email = $request->input('email');
-            $firstname = $request->input('firstname');
-            $lastname = $request->input('lastname');
-            $address = $request->input('address');
-            $city = $request->input('city');
-            $postalCode = $request->input('postalCode');
-            $phoneNumber = $request->input('phoneNumber');
-            $country = $request->input('country');
-            $state = $request->input('state');
-            $subtotal = $request->input('totalPrice');
-            $shippingFee = $request->input('checkoutTotal') - $request->input('totalPrice');
-            $totalPrice = $request->input('checkoutTotal');
-            $currency = $request->input('currency');
-            $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
-            $cartProducts = $request->input('cartProducts');
+
+            $email = $updatedRequestData['email'];
+            $firstname = $updatedRequestData['firstname'];
+            $lastname = $updatedRequestData['lastname'];
+            $address = $updatedRequestData['address'];
+            $city = $updatedRequestData['city'];
+            $postalCode = $updatedRequestData['postalCode'];
+            $phoneNumber = $updatedRequestData['phoneNumber'];
+            $country = $updatedRequestData['country'];
+            $state = $updatedRequestData['state'];
+            $subtotal = $updatedRequestData['totalPrice'];
+            $shippingFee = $updatedRequestData['checkoutTotal'] - $updatedRequestData['totalPrice'];
+            $totalPrice = $updatedRequestData['checkoutTotal'];
+            $currency = $updatedRequestData['currency'];
+            $expectedDateOfDelivery = $updatedRequestData['expectedDateOfDelivery'];
+            $cartProducts = $updatedRequestData['cartProducts'];
             $uniqueId = now()->timestamp;
 
             // Call createToken method from AuthController
@@ -128,12 +146,13 @@ class PaystackPaymentController extends Controller
     {
         // Extract the 'reference' from the request (Paystack uses 'reference')
         $reference = $request->query('reference');
+        $detailsToken = $request->query('detailsToken');
 
         // Check if 'reference' is missing
         if (!$reference) {
             return response()->json([
                 'code' => 'error',
-                'reason' => 'Transaction reference is required.'
+                'message' => 'Transaction reference is required.'
             ]);
         }
 
@@ -157,7 +176,8 @@ class PaystackPaymentController extends Controller
                         $data['amount'] / 100, // Convert from kobo to the actual amount
                         'successful',
                         $data['paid_at'],
-                        $data['channel'] // payment channel used (card, bank, etc.)
+                        $data['channel'], // payment channel used (card, bank, etc.)
+                        $detailsToken
                     );
                 } else {
                     return response()->json([
@@ -187,7 +207,7 @@ class PaystackPaymentController extends Controller
     }
 
 
-    public function processPayment($reference, $amount, $status, $paid_at, $channel)
+    public function processPayment($reference, $amount, $status, $paid_at, $channel, $detailsToken)
     {
         try {
             // Check if a transaction with the same reference already exists
@@ -211,10 +231,15 @@ class PaystackPaymentController extends Controller
                 'payment_channel' => $channel, // Payment channel like card, bank, etc.
             ]);
 
-            return response()->json([
-                'code' => 'success',
-                'message' => 'Transaction processed successfully'
-            ], 200);
+            $orderClass = new OrderController();
+            return $orderClass->saveProductToDbAfterPayment($detailsToken);
+
+
+
+            // return response()->json([
+            //     'code' => 'success',
+            //     'message' => 'Transaction processed successfully'
+            // ], 200);
 
         } catch (\Exception $error) {
             // Log the error for debugging purposes

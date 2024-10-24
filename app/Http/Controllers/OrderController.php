@@ -23,10 +23,10 @@ class OrderController extends Controller
 {
     //
 
-    public function saveProductToDbAfterPayment(Request $request){
+    public function saveProductToDbAfterPayment($detailsToken){
         try{
             
-            $detailsToken = $request->header('detailsToken'); // Token from header
+            // $detailsToken = $request->header('detailsToken');
 
             // Verify JWT Token
             $verifyToken = JWT::decode($detailsToken, new Key(env('JWT_SECRET'), 'HS256'));
@@ -86,7 +86,7 @@ class OrderController extends Controller
             $order = Order::create($orderDetails);
 
             //fetch all orders from the database and save to cache
-            $allPendingOrders = Order::where('status', 'pending')->orderBy('created_at', 'desc')->get();
+            $allPendingOrders = Order::where('status', 'pending')->orderBy('created_at', 'desc')->get()->toArray();
 
             //save fetched orders to cache
             Redis::set('pendingOrders', json_encode($allPendingOrders, true));
@@ -110,7 +110,7 @@ class OrderController extends Controller
                                             <h3 style='margin: 0; color: #333; font-size: 18px;'>" . htmlspecialchars($item->productName) . "</h3>
                                             <p style='margin: 5px 0; color: #777; font-size: 14px;'>Length: " . htmlspecialchars($item->lengthPicked) . "</p>
                                             <p style='margin: 5px 0; color: #777; font-size: 14px;'>Quantity: " . htmlspecialchars($item->quantity) . "</p>
-                                            <p style='margin: 5px 0; color: #777; font-size: 14px;'>Price: {$formattedPrice}</p>
+                                            <p style='margin: 5px 0; color: #777; font-size: 14px;'>Price: {$item->updatedPrice}</p>
                                         </div>
                         </div>
                     ";
@@ -173,7 +173,11 @@ class OrderController extends Controller
             // Send the email
             $mailClass = new MailController();
             $mailClass->sendEMail($email, $subject, $body);
-            
+
+            //fetch all fresh orders for the user that just made payment and update the cache
+            $updatedOrders = Order::where('user_id', $request->user_id)->orderBy('created_at', 'desc')->get()->toArray();
+
+            Redis::set($request->user_id . '_orders', json_encode($updatedOrders, true));
 
             return response()->json([
                 'message' => 'Product(s) ordered successfully saved to DB',
@@ -206,7 +210,7 @@ class OrderController extends Controller
                     ]);
                 }else{
                     //fetch all pending orders from database
-                    $allPendingOrders = Order::where('status', 'pending')->orderBy('created_at', 'desc')->get();
+                    $allPendingOrders = Order::where('status', 'pending')->orderBy('created_at', 'desc')->get()->toArray();
 
                     //save fetched orders to cache
                     Redis::set('pendingOrders', json_encode($allPendingOrders, true));
@@ -231,7 +235,7 @@ class OrderController extends Controller
                     ]);
                 }else{
                     //fetch all out-for-delivery orders from database
-                    $allOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get();
+                    $allOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get()->toArray();
 
                     //save fetched orders to cache
                     Redis::set('outForDeliveryOrders', json_encode($allOutForDeliveryOrders, true));
@@ -254,7 +258,7 @@ class OrderController extends Controller
                     ]);
                 }else{
                     //fetch all delivered orders from database
-                    $allDeliveredOrders = Order::where('status', 'delivered')->orderBy('created_at', 'desc')->get();
+                    $allDeliveredOrders = Order::where('status', 'delivered')->orderBy('created_at', 'desc')->get()->toArray();
 
                     //save fetched orders to cache
                     Redis::set('deliveredOrders', json_encode($allDeliveredOrders, true));
@@ -283,7 +287,6 @@ class OrderController extends Controller
             ]);
             //fetch the order in the database using the trackingId
             $order = Order::where('tracking_id', $request->trackingId)->first();
-            return $order;
             if(!$order){
                 return response()->json([
                     "message" => "Order with tracking number does not exist",
@@ -314,20 +317,20 @@ class OrderController extends Controller
             $order->save();
 
             //fetch all fresh pending orders from database
-            $newAllPendingOrders = Order::where('status', 'pending')->orderBy('updated_at', 'desc')->get();
+            $newAllPendingOrders = Order::where('status', 'pending')->orderBy('updated_at', 'desc')->get()->toArray();
 
             //save fetched orders to cache
             Redis::set('pendingOrders', json_encode($newAllPendingOrders, true));
 
 
             //fetch all fresh out-for-delivery orders from database
-            $newAllOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get();
+            $newAllOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get()->toArray();
 
             //save fetched orders to cache
             Redis::set('outForDeliveryOrders', json_encode($newAllOutForDeliveryOrders, true));
 
             //fetch all fresh delivered orders from database
-            $newAllOutForDeliveredOrders = Order::where('status', 'delivered')->orderBy('updated_at', 'desc')->get();
+            $newAllOutForDeliveredOrders = Order::where('status', 'delivered')->orderBy('updated_at', 'desc')->get()->toArray();
 
             //save fetched orders to cache
             Redis::set('deliveredOrders', json_encode($newAllOutForDeliveredOrders, true));
@@ -337,21 +340,19 @@ class OrderController extends Controller
             $subject = 'Order Status Update'; //subject of mail
 
             $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
-                $currencyClass = new CurrencyController();
-                $convertedCurrency = $currencyClass->convertCurrency($item['productPriceInNaira'], $currency);
+                // $currencyClass = new CurrencyController();
+                // $convertedCurrency = $currencyClass->convertCurrency($item['productPriceInNaira'], $currency);
 
-                $formattedPrice = $currency . ' ' . number_format((float)$convertedCurrency, 2, '.', ',');
+                // $formattedPrice = $currency . ' ' . number_format((float)$convertedCurrency, 2, '.', ',');
 
                 return "
-                <div style='padding: 20px; text-align: center; background: #f4f4f4; max-width: 180px;'>
-                    <div>
-                        <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 80px; height: 80px;'>
-                    </div>
-                    <div style='text-align: center;'>
-                        <h4 style='margin: 0;'>" . htmlspecialchars($item['productName']) . "</h4>
-                        <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
-                        <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
-                        <h5 style='margin: 0;'><b>Price:</b> {$formattedPrice}</5>
+                <div style='display: flex; border: 1px solid #ddd, border-radius: 10px; padding: 10px; margin-bottom: 20px; background-color: #fafafa; maxWidth: 320px;'>
+                    <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 100%; height: auto; max-width: 80px; object-fit: cover; border-radius: 8px; margin-right: 20px;'>
+                    <div style='flex-grow: 1;'>
+                        <h4 style='margin: 0; color: #333; font-size: 18px;'>" . htmlspecialchars($item['productName']) . "</h4>
+                        <h5 style='margin: 5px 0; color: #777; font-size: 14px;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
+                        <h5 style='margin: 5px 0; color: #777; font-size: 14px;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
+                        <h5 style='margin: 5px 0; color: #777; font-size: 14px;'><b>Price:</b> {$item['updatedPrice']}</5>
                     </div>
                 </div>
                     ";
@@ -376,7 +377,7 @@ class OrderController extends Controller
                         <li><strong>Out For Delivery Date:</strong> {$outForDeliveryDate}</li>
                     </ul>
 
-                    <h4 style='color: #333;'>Order Product(s):</h4>
+                    <h4 style='color: #333;'>Ordered Product(s):</h4>
                     <div style='display: flex; flex-wrap: wrap; gap: 10px;'>
                         {$orderSummary}
                     </div>
@@ -447,13 +448,13 @@ class OrderController extends Controller
                 $order->save();
     
                 //fetch all fresh delivered orders from database
-                $newAllDeliveredOrders = Order::where('status', 'delivered')->orderBy('updated_at', 'desc')->get();
+                $newAllDeliveredOrders = Order::where('status', 'delivered')->orderBy('updated_at', 'desc')->get()->toArray();
     
                 //save fetched orders to cache
                 Redis::set('deliveredOrders', json_encode($newAllDeliveredOrders, true));
     
                 //fetch all fresh out-for-delivery orders from database
-                $newAllOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get();
+                $newAllOutForDeliveryOrders = Order::where('status', 'outForDelivery')->orderBy('updated_at', 'desc')->get()->toArray();
     
                 //save fetched orders to cache
                 Redis::set('outForDeliveryOrders', json_encode($newAllOutForDeliveryOrders, true));
@@ -463,23 +464,21 @@ class OrderController extends Controller
                 $subject = 'Order Status Update'; //subject of mail
     
                 $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
-                    $currencyClass = new CurrencyController();
-                    $convertedCurrency = $currencyClass->convertCurrency($item['price'], $currency);
+                    // $currencyClass = new CurrencyController();
+                    // $convertedCurrency = $currencyClass->convertCurrency($item['price'], $currency);
     
-                    $formattedPrice = $currency . ' ' . number_format((float)$convertedCurrency, 2, '.', ',');
+                    // $formattedPrice = $currency . ' ' . number_format((float)$convertedCurrency, 2, '.', ',');
     
                     return "
-                    <div style='padding: 20px; text-align: center; background: #f4f4f4; max-width: 190px;'>
-                        <div>
-                            <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 80px; height: 80px;'>
-                        </div>
-                        <div style='text-align: center;'>
-                            <h4 style='margin: 0;'>" . htmlspecialchars($item['name']) . "</h4>
-                            <h5 style='margin: 0;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
-                            <h5 style='margin: 0;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
-                            <h5 style='margin: 0;'><b>Price:</b> {$formattedPrice}</5>
-                        </div>
+                    <div style='display: flex; border: 1px solid #ddd, border-radius: 10px; padding: 10px; margin-bottom: 20px; background-color: #fafafa; maxWidth: 320px;'>
+                    <img src='{$item['productImage']}' alt='" . htmlspecialchars($item['productName']) . "' style='width: 100%; height: auto; max-width: 80px; object-fit: cover; border-radius: 8px; margin-right: 20px;'>
+                    <div style='flex-grow: 1;'>
+                        <h4 style='margin: 0; color: #333; font-size: 18px;'>" . htmlspecialchars($item['productName']) . "</h4>
+                        <h5 style='margin: 5px 0; color: #777; font-size: 14px;'>Length - " . htmlspecialchars($item['lengthPicked']) . "</h5>
+                        <h5 style='margin: 5px 0; color: #777; font-size: 14px;'>Quantity * " . htmlspecialchars($item['quantity']) . "</h5>
+                        <h5 style='margin: 5px 0; color: #777; font-size: 14px;'><b>Price:</b> {$item['updatedPrice']}</5>
                     </div>
+                </div>
                         ";
                 }, $products, array_keys($products)));
     
@@ -502,8 +501,8 @@ class OrderController extends Controller
                             <li><strong>Out For Delivery Date:</strong> {$deliveredDate}</li>
                         </ul>
     
-                        <h4 style='color: #333;'>Order Product(s):</h4>
-                        <div style='display: flex; flex-wrap: wrap; gap: 10px;'>
+                        <h4 style='color: #333;'>Ordered Product(s):</h4>
+                        <div  style='display: flex; flex-wrap: wrap; gap: 10px;'>
                             {$orderSummary}
                         </div>
                        
