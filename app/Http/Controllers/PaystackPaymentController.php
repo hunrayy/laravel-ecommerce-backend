@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 use App\Models\User;
+use App\Models\PaystackTransaction;
 
 class PaystackPaymentController extends Controller
 {
@@ -18,7 +19,6 @@ class PaystackPaymentController extends Controller
     //
     public function makePayment(Request $request)
     {
-        return $request->user_id;
         try {  
             $request->validate([
                 'firstname' => 'required|string',
@@ -26,14 +26,16 @@ class PaystackPaymentController extends Controller
                 'email' => 'required|email',
                 'address' => 'required|string',
                 'city' => 'required|string',
-                'phoneNumber' => 'required|string',
+                'phoneNumber' => 'phone',
                 'country' => 'required|string',
                 'state' => 'required|string',
                 'checkoutTotal' => 'required|numeric',
                 'currency' => 'required|string',
                 'expectedDateOfDelivery' => 'required|string',
                 'cartProducts' => 'required'
-            ]);
+            ],
+            ['phoneNumber.phone' => 'The :attribute must be a valid phone number, preceeded by the country code.']);
+
             // run a function to convert the price of each cart item to the desired currency passed
             $currencyClass = new CurrencyController();
             $cartProducts = $request->cartProducts; // Get the products from the request
@@ -210,44 +212,42 @@ class PaystackPaymentController extends Controller
     public function processPayment($reference, $amount, $status, $paid_at, $channel, $detailsToken)
     {
         try {
-            // Check if a transaction with the same reference already exists
-            $existingTransaction = DB::table('paystack_transactions')
-                ->where('reference', $reference)
-                ->first();
-
-            if ($existingTransaction) {
-                return response()->json([
-                    'code' => 'already-made',
-                    'message' => 'Transaction already processed'
-                ], 200);
-            }
-
-            // Insert the transaction into the 'transactions' table
-            DB::table('paystack_transactions')->insert([
-                'id' => (string) Str::uuid(), // Generate and cast the UUID to string
-                'reference' => $reference,  // Paystack's unique transaction reference
-                'amount' => $amount, // Amount in base currency (kobo if NGN)
-                'status' => $status, // The transaction status, e.g., 'success'
-                'payment_channel' => $channel, // Payment channel like card, bank, etc.
-            ]);
-
-            $orderClass = new OrderController();
-            return $orderClass->saveProductToDbAfterPayment($detailsToken);
-
-
-
-            // return response()->json([
-            //     'code' => 'success',
-            //     'message' => 'Transaction processed successfully'
-            // ], 200);
-
+            // Start a database transaction
+            // DB::transaction(function () use ($reference, $amount, $status, $channel, $detailsToken) {
+                // Check if a transaction with the same reference already exists using `lockForUpdate()`
+                $existingTransaction = PaystackTransaction::where('reference', $reference)->lockForUpdate()->first();
+                
+                if ($existingTransaction !== null) {
+                    \Log::info('Existing transaction found:', ['reference' => $reference]);
+                    \Log::info('Existing transaction found:', ['transaction' => $existingTransaction]);
+                    return response()->json([
+                        'code' => 'already-made',
+                        'message' => 'Transaction already processed'
+                    ]);
+                } else {
+                    \Log::info('Inserting new transaction:', ['reference' => $reference]);
+    
+                    // Insert the transaction into the 'transactions' table
+                    PaystackTransaction::insert([
+                        'id' => (string) Str::uuid(), // Generate and cast the UUID to string
+                        'reference' => $reference,  // Paystack's unique transaction reference
+                        'amount' => $amount, // Amount in base currency (kobo if NGN)
+                        'status' => $status, // The transaction status, e.g., 'success'
+                        'payment_channel' => $channel, // Payment channel like card, bank, etc.
+                    ]);
+    
+                    $orderClass = new OrderController();
+                    return $orderClass->saveProductToDbAfterPayment($detailsToken);
+                }
+            // });
+    
         } catch (\Exception $error) {
             // Log the error for debugging purposes
             Log::error('Error processing payment', [
                 'reference' => $reference,
                 'error' => $error->getMessage()
             ]);
-
+    
             // Return an error response
             return response()->json([
                 'code' => 'error',

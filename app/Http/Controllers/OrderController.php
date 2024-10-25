@@ -24,8 +24,9 @@ class OrderController extends Controller
     //
 
     public function saveProductToDbAfterPayment($detailsToken){
-        try{
-            
+        
+        $request = request();
+        try{            
             // $detailsToken = $request->header('detailsToken');
 
             // Verify JWT Token
@@ -316,6 +317,8 @@ class OrderController extends Controller
             $order->status = 'outForDelivery';
             $order->save();
 
+            
+
             //fetch all fresh pending orders from database
             $newAllPendingOrders = Order::where('status', 'pending')->orderBy('updated_at', 'desc')->get()->toArray();
 
@@ -335,6 +338,11 @@ class OrderController extends Controller
             //save fetched orders to cache
             Redis::set('deliveredOrders', json_encode($newAllOutForDeliveredOrders, true));
             
+            $userOrder = Order::where('user_id', $order->user_id)->orderBy('created_at', 'desc')->get();
+            
+            //save fetched orders to cache
+            Redis::set($order->user_id . '_orders', json_encode($userOrder));
+
 
             //send a notification via mail to the user
             $subject = 'Order Status Update'; //subject of mail
@@ -458,6 +466,12 @@ class OrderController extends Controller
     
                 //save fetched orders to cache
                 Redis::set('outForDeliveryOrders', json_encode($newAllOutForDeliveryOrders, true));
+
+                $userOrder = Order::where('user_id', $order->user_id)->orderBy('created_at', 'desc')->get();
+            
+                //save fetched orders to cache
+                Redis::set($order->user_id . '_orders', json_encode($userOrder));
+
                 
     
                 //send a notification via mail to the user
@@ -532,5 +546,32 @@ class OrderController extends Controller
                 "reason" => $e->getMessage()
             ]);
         }
+    }
+
+    public function trackOrder(Request $request){
+        try{
+            $request->validate([
+                'trackingId' => 'required'
+            ]);
+            $trackingId = $request->query('trackingId');
+            $trackOrder = Order::where('tracking_id', $trackingId)->first();
+            if(!$trackOrder){
+                return response()->json([
+                    'code' => 'error',
+                    'message' => "Order with tracking id: $trackingId does not exist"
+                ]);
+            }
+            return response()->json([
+                'code' => 'success',
+                'message' => "Order with tracking id: $trackingId fetched successfully",
+                'data' => $trackOrder
+            ]); 
+        }catch(\Exception $e){
+            return response()->json([
+                'code' => 'error',
+                'message' => "An error occured while tracking order, $e->getMessage()"
+            ]);
+        }
+
     }
 }
