@@ -30,6 +30,8 @@ class VerifyJWTToken
         try {
             // Split the bearer token
             $bearerToken = explode(' ', $authorization)[1];
+            // test code
+            // test code 
 
             // Verify the token
             $decodedToken = JWT::decode($bearerToken, new Key(env("JWT_SECRET"), 'HS256'));
