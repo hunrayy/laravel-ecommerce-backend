@@ -15,7 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('tracking_id');
             $table->string('transaction_id');
-            $table->foreignId('user_id')->constrained('users');
+            $table->uuid('user_id'); // Use uuid for user_id to match the UUID type in users table
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); // Add foreign key constraint
             $table->string('firstname');
             $table->string('lastname');
             $table->string('email');

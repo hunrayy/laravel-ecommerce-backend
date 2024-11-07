@@ -190,7 +190,6 @@ class AdminAuthController extends Controller
                 'code' => 'invalid-jwt',
                 'reason' => $e->getMessage(),
             ]);
-            // test code
         }
 
 
