@@ -20,20 +20,20 @@ use App\Http\Controllers\AdminPasswordResetController;
 
 
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
 
 Route::post('/send-email-verification-code', [AuthController::class, 'sendEmailVerificationCode']);
 Route::post('/verify-email-verification-code', [AuthController::class, 'verifyEmailVerificationCode']);
 Route::post('/is-token-active', [TokenController::class, 'isTokenActive']);
-// Route::post('/register', [AuthController::class, 'createAccount'])->middleware(VerifyJWTToken::class);
+Route::post('/createAccount', [AuthController::class, 'register']);
 
     
-Route::middleware([VerifyJWTToken::class])->group(function () {
-    Route::post('/register', [AuthController::class, 'createAccount']);
-    // Add other routes that need token protection here
-});
+// Route::middleware([VerifyJWTToken::class])->group(function () {
+//     Route::post('/createAccount', [AuthController::class, 'register']);
+//     // Add other routes that need token protection here
+// });
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/get-all-products', [ProductController::class, 'getAllProducts']);
 Route::get('/get-single-product', [ProductController::class, 'getSingleProduct']);

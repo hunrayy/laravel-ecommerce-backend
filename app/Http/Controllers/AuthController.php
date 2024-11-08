@@ -165,7 +165,7 @@ class AuthController extends Controller
         }
     }
 
-    public function createAccount(Request $request)
+    public function register(Request $request)
     {
         // Validate request
         $request->validate([
@@ -175,6 +175,27 @@ class AuthController extends Controller
         ]);
 
         try {
+
+            $authorization = $request->header("Authorization");
+
+
+            if (!$authorization || $authorization == 'Bearer undefined') {
+                return response()->json([
+                    'code' => 'invalid-jwt',
+                    'message' => 'Authorization header not found'
+                ]);
+            }
+            // Split the bearer token
+            $bearerToken = explode(' ', $authorization)[1];
+            
+
+            // Verify the token
+            $decodedToken = JWT::decode($bearerToken, new Key(env("JWT_SECRET"), 'HS256'));
+
+            // Attach user email to the request
+           
+
+
             // Check if the user already exists
             $existingUser = User::where('email', $request->email)->first();
             if ($existingUser) {
@@ -202,6 +223,12 @@ class AuthController extends Controller
                     'email' => $request->email,
                 ],
             ]);
+        } catch (ExpiredException $e) {
+            return response()->json([
+                'code' => 'invalid-jwt',
+                'message' => 'Token has expired'
+            ]);
+
         } catch (\Exception $error) {
             Log::error('Error occurred: ' . $e->getMessage());
             return response()->json([

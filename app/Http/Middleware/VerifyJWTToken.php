@@ -46,14 +46,14 @@ class VerifyJWTToken
             return response()->json([
                 'code' => 'invalid-jwt',
                 'message' => 'Token has expired'
-            ], 401);
+            ]);
 
         } catch (Exception $e) {
             Log::error('JWT error: ' . $e->getMessage()); // Log the error for debugging
             return response()->json([
                 'code' => 'invalid-jwt',
                 'message' => 'Invalid JWT or other error: ' . $e->getMessage()
-            ], 401);
+            ]);
         }
     }
 }
