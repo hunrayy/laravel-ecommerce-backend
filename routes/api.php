@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\TokenController;
 use App\Http\Middleware\VerifyJWTToken;
 use App\Http\Middleware\VerifyAdminToken;
+use App\Http\Middleware\IsTokenActive;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\GetPagesController;
 use App\Http\Controllers\EditPagesController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\PaystackPaymentController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserPasswordResetController;
 use App\Http\Controllers\AdminPasswordResetController;
+use App\Http\Controllers\UserController;
+
 
 
 
@@ -46,7 +49,7 @@ Route::get('paystack/validate-payment', [PaystackPaymentController::class, 'vali
 Route::post('/save-products-to-db-after-payment', [OrderController::class, 'saveProductToDbAfterPayment'])->middleware(VerifyJWTToken::class);
 Route::post('/get-user-details', [OrderController::class, 'getUserDetails'])->middleware(VerifyJWTToken::class);
 Route::post('/send-password-reset-link', [UserPasswordResetController::class, 'sendPasswordResetLink']);
-Route::post('/reset-password', [UserPasswordResetController::class, 'resetPassword'])->middleware(VerifyJWTToken::class);
+Route::post('/reset-password', [UserPasswordResetController::class, 'resetPassword'])->middleware(IsTokenActive::class);
 Route::get('/get-user-orders', [AuthController::class, 'getUserOrders'])->middleware(VerifyJWTToken::class);
 Route::post('/send-feedback', [AuthController::class, 'sendFeedback']);
 Route::get('/user/get-page', [GetPagesController::class, 'index']);
@@ -65,8 +68,9 @@ Route::get('/track-order', [OrderController::class, 'trackOrder']);
 
 // -----------------------------------admin routes----------------------------------------//
 Route::post('/admin/login', [AdminAuthController::class, 'adminLogin']);
+Route::get('/admin/get-all-users', [UserController::class, 'getAllUsers'])->middleware(VerifyAdminToken::class);
 Route::post('/admin-send-password-reset-link', [AdminPasswordResetController::class, 'sendAdminPasswordResetLink']);
-Route::post('/admin-reset-password', [AdminPasswordResetController::class, 'AdminResetPassword'])->middleware(VerifyJWTToken::class);
+Route::post('/admin-reset-password', [AdminPasswordResetController::class, 'AdminResetPassword']);
 Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
 Route::get('/admin/get-page', [GetPagesController::class, 'index'])->middleware(VerifyAdminToken::class);

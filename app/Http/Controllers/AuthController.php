@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail; //for mail sending
 use App\Http\Controllers\MailController;
 
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 
 
 use Illuminate\Support\Facades\Validator; //for validating the request coming in
@@ -345,7 +346,7 @@ class AuthController extends Controller
             //use the id obtained to retrieved a list of the user's order
 
             //check if user order exists in cache
-            $cachedOrders = Redis::get($userId . '_orders');
+            $cachedOrders = Cache::get($userId . '_orders');
             if($cachedOrders){
                 return response()->json([
                     "message" => "User order successfully retrieved from cache",
@@ -360,7 +361,7 @@ class AuthController extends Controller
             $userOrder = Order::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
             
             //save fetched orders to cache
-            Redis::set($userId . '_orders', json_encode($userOrder));
+            Cache::put($userId . '_orders', json_encode($userOrder));
 
             return response()->json([
                 "message" => "User order successfully retrieved from database",

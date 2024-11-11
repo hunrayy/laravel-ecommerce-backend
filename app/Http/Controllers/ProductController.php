@@ -158,9 +158,17 @@ class ProductController extends Controller
     public function createProduct(Request $request){
         // Validate request input
         $validator = Validator::make($request->all(), [
-            'productName' => 'required|string|max:255',
-            'productPrice' => 'required|numeric',
             'productImage' => 'image|mimes:jpeg,png,jpg,gif',
+            'productName' => 'required|string|max:255',
+            'productPrice12Inches' => 'required|numeric',
+            'productPrice14Inches' => 'required|numeric',
+            'productPrice16Inches' => 'required|numeric',
+            'productPrice18Inches' => 'required|numeric',
+            'productPrice20Inches' => 'required|numeric',
+            'productPrice22Inches' => 'required|numeric',
+            'productPrice24Inches' => 'required|numeric',
+            'productPrice26Inches' => 'required|numeric',
+            'productPrice28Inches' => 'required|numeric',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -180,18 +188,28 @@ class ProductController extends Controller
             // Create new product
             Product::create([
                 'productName' => $request->input('productName'),
-                'productPriceInNaira' => $request->input('productPrice'),
                 'productImage' => $uploadedProductImage,
                 'subImage1' => $uploadedSubImage1,
                 'subImage2' => $uploadedSubImage2,
-                'subImage3' => $uploadedSubImage3
+                'subImage3' => $uploadedSubImage3,
+                'productPriceInNaira12Inches' => $request->input('productPrice12Inches'),
+                'productPriceInNaira14Inches' => $request->input('productPrice14Inches'),
+                'productPriceInNaira16Inches' => $request->input('productPrice16Inches'),
+                'productPriceInNaira18Inches' => $request->input('productPrice18Inches'),
+                'productPriceInNaira20Inches' => $request->input('productPrice20Inches'),
+                'productPriceInNaira22Inches' => $request->input('productPrice22Inches'),
+                'productPriceInNaira24Inches' => $request->input('productPrice24Inches'),
+                'productPriceInNaira26Inches' => $request->input('productPrice26Inches'),
+                'productPriceInNaira28Inches' => $request->input('productPrice28Inches'),
+
+                
             ]);
 
             //update the cache to hold the current data
             $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray(); //  paginate the results
 
             //save all products fetched to the cache
-            Redis::set('allProducts', json_encode($allProducts, true));
+            Cache::put('allProducts', json_encode($allProducts, true));
     
             
             return response()->json([
@@ -249,8 +267,8 @@ class ProductController extends Controller
         $perPage = (int)$request->query('perPage'); //fallback value of 2 if number of products per page isn't passed
         
 
-        // Retrieve the products array from Redis
-        $cachedProducts = Redis::get('allProducts');
+        // Retrieve the products array from cache
+        $cachedProducts = Cache::get('allProducts');
         if($cachedProducts){
             // Decode the products array
             $products = json_decode($cachedProducts, true);
@@ -279,7 +297,7 @@ class ProductController extends Controller
         $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray(); //  paginate the results
 
         //save all products fetched to the cache
-        Redis::set('allProducts', json_encode($allProducts, true));
+        Cache::put('allProducts', json_encode($allProducts, true));
 
         // Calculate total number of products
         $totalProducts = count($allProducts);
@@ -305,7 +323,7 @@ class ProductController extends Controller
 
 
         // //check if products are in cache
-        // $cachedProducts = Redis::get('allProducts');
+        // $cachedProducts = Cache::get('allProducts');
 
         // //if so, return cached products
         // if($cachedProducts){
@@ -319,7 +337,7 @@ class ProductController extends Controller
         // //else, query the database for products, then save the products to the cache
         // $allProducts = Product::all();
         // $arrayProducts = $allProducts->toArray();
-        // Redis::set('allProducts', $allProducts);
+        // Cache::put('allProducts', $allProducts);
         
         // return response()->json([
         //     "code" => "success",
@@ -333,7 +351,7 @@ class ProductController extends Controller
         $productId = $request->query('productId');
 
         //check if product exists in cache
-        $cachedProduct = Redis::get("singleProduct_{$productId}");
+        $cachedProduct = Cache::get("singleProduct_{$productId}");
         if($cachedProduct){
             //product exists in cache
             return response()->json([
@@ -348,7 +366,7 @@ class ProductController extends Controller
 
             if($fetchedProduct){
                 //save the product in the cache
-                Redis::set("singleProduct_{$productId}", $fetchedProduct);
+                Cache::put("singleProduct_{$productId}", $fetchedProduct);
 
                 return response()->json([
                     "code" => "success",
@@ -455,7 +473,7 @@ class ProductController extends Controller
 
             //update the cache to hold the current data
             $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray();
-            Redis::set('allProducts', json_encode($allProducts, true));
+            Cache::put('allProducts', json_encode($allProducts, true));
             
 
     
@@ -577,11 +595,11 @@ class ProductController extends Controller
             $productToDelete->delete();
 
             // delete the single product from cache
-            Redis::del("singleProduct_{$productId}");
+            Cache::forget("singleProduct_{$productId}");
             
             //delete successful, fetch all products and save to cache
             $newProducts = Product::orderBy('created_at', 'desc')->get()->toArray();
-            Redis::set("allProducts", json_encode($newProducts, true));
+            Cache::put("allProducts", json_encode($newProducts, true));
 
 
 
@@ -608,7 +626,7 @@ class ProductController extends Controller
         $query = $request->query('query');
     
         // Get products from cache if available
-        $cachedProducts = json_decode(Redis::get('allProducts'), true);
+        $cachedProducts = json_decode(Cache::get('allProducts'), true);
     
         if ($cachedProducts) {
             // Filter cached products based on the query
@@ -624,7 +642,7 @@ class ProductController extends Controller
             $products = Product::where('productName', 'LIKE', '%' . $query . '%')->get()->toArray();
     
             // Cache all products for future requests
-            // Redis::set('allProducts', $products);
+            // Cache::put('allProducts', $products);
     
             return response()->json([
                 'message' => 'Products successfully retrieved from database',
@@ -644,7 +662,7 @@ class ProductController extends Controller
     public function getProductDetails(Request $request){
         $arrayOfIds = $request->query('ids');
         //retrive products from cache
-        $cachedProducts = json_decode(Redis::get('allProducts'), true);
+        $cachedProducts = json_decode(Cache::get('allProducts'), true);
         if ($cachedProducts) {
             // Filter the cached products to only those whose ID is in $arrayOfIds
             $matchedProducts = array_filter($cachedProducts, function ($product) use ($arrayOfIds) {

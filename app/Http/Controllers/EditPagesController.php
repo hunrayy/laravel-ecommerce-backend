@@ -66,7 +66,7 @@ class EditPagesController extends Controller
             $page->save();
 
             // Update the cache with the new data
-            Redis::set('shippingPolicy', json_encode([
+            Cache::put('shippingPolicy', json_encode([
                 'title' => $page->title,
                 'firstSection' => $page->firstSection,
                 'secondSection' => $page->secondSection,
@@ -140,7 +140,7 @@ class EditPagesController extends Controller
             $page->save();
 
             // Update the cache with the new data
-            Redis::set('refundPolicy', json_encode([
+            Cache::put('refundPolicy', json_encode([
                 'title' => $page->title,
                 'firstSection' => $page->firstSection,
                 'secondSection' => $page->secondSection,
@@ -231,7 +231,7 @@ class EditPagesController extends Controller
             $page->save();
 
             // Update the cache with the new data
-            Redis::set('deliveryPolicy', json_encode([
+            Cache::put('deliveryPolicy', json_encode([
                 'title' => $page->title,
                 'firstSection' => $page->firstSection,
                 'secondSection' => $page->secondSection,

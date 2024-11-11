@@ -28,7 +28,7 @@ class GetPagesController extends Controller
         }
     }
     public function getShippingPolicy(){
-        $cachedData = Redis::get('shippingPolicy');
+        $cachedData = cache::get('shippingPolicy');
         if ($cachedData) {
             return response()->json([
                 'code' => 'success',
@@ -46,7 +46,7 @@ class GetPagesController extends Controller
                 'thirdSection' => $feedback->thirdSection,
             ];
 
-            Redis::set('shippingPolicy', json_encode($pageData, true));
+            Cache::put('shippingPolicy', json_encode($pageData, true));
             
             return response()->json([
                 'code' => 'success',
@@ -62,7 +62,7 @@ class GetPagesController extends Controller
 
     public function getRefundPolicy(){
         try{
-            $cachedData = Redis::get('refundPolicy');
+            $cachedData = cache::get('refundPolicy');
 
             if ($cachedData) {
                 return response()->json([
@@ -87,7 +87,7 @@ class GetPagesController extends Controller
     
                 ];
     
-                Redis::set('refundPolicy', json_encode($pageData, true));
+                Cache::put('refundPolicy', json_encode($pageData, true));
                 
                 return response()->json([
                     'code' => 'success',
@@ -106,7 +106,7 @@ class GetPagesController extends Controller
 
 
     public function getDeliveryPolicy(){
-        $cachedData = Redis::get('deliveryPolicy');
+        $cachedData = cache::get('deliveryPolicy');
 
         if ($cachedData) {
             return response()->json([
@@ -134,7 +134,7 @@ class GetPagesController extends Controller
                 'twelfthSection' => $feedback->twelfthSection,
             ];
 
-            Redis::set('deliveryPolicy', json_encode($pageData, true));
+            Cache::put('deliveryPolicy', json_encode($pageData, true));
             
             return response()->json([
                 'code' => 'success',
