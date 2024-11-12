@@ -24,7 +24,7 @@ class Product extends Model
         'productPriceInNaira22Inches',
         'productPriceInNaira24Inches',
         'productPriceInNaira26Inches',
-        'productPriceInNaira26Inches',
+        'productPriceInNaira28Inches',
 
     ];
 

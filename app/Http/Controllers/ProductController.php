@@ -217,7 +217,7 @@ class ProductController extends Controller
                 'code' => 'success',
             ]);
         }catch(\Exception $e){
-            Log::error('Error occurred: ' . $e->getMessage());
+            // Log::error('Error occurred: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error creating product.',
                 'code' => 'error',
@@ -394,6 +394,20 @@ class ProductController extends Controller
 
     public function updateProduct(Request $request){
         try{
+            $request->validate([
+                'productImage' => 'required|string',
+                'productName' => 'required|string',
+                'productPriceInNaira12Inches' => 'required|numeric',
+                'productPriceInNaira14Inches' => 'required|numeric',
+                'productPriceInNaira16Inches' => 'required|numeric',
+                'productPriceInNaira18Inches' => 'required|numeric',
+                'productPriceInNaira20Inches' => 'required|numeric',
+                'productPriceInNaira22Inches' => 'required|numeric',
+                'productPriceInNaira24Inches' => 'required|numeric',
+                'productPriceInNaira26Inches' => 'required|numeric',
+                'productPriceInNaira28Inches' => 'required|numeric',
+
+            ]);
             $productId = $request->query('productId');
             $product = Product::where('id', $productId)->first();
             
@@ -457,25 +471,41 @@ class ProductController extends Controller
             }
     
             //process the product price
-            if($request->has('productName')){
-                // Update the name in the database
-                $product->productName = $request->input('productName');
-            }
+            // if($request->has('productName')){
+            //     // Update the name in the database
+            //     $product->productName = $request->input('productName');
+            // }
     
-            //process the product price
-            if($request->has('productPriceInNaira')){
-                // Update the price in the database
-                $product->productPriceInNaira = $request->input('productPriceInNaira');
-            }
+            // //process the product price
+            // if($request->has('productPriceInNaira12Inches')){
+            //     // Update the price in the database
+            //     $product->productPriceInNaira = $request->input('productPriceInNaira');
+            // }
+
+            $product->productName = $request->input('productName');
+            $product->productPriceInNaira12Inches = $request->input('productPriceInNaira12Inches');
+            $product->productPriceInNaira14Inches = $request->input('productPriceInNaira14Inches');
+            $product->productPriceInNaira16Inches = $request->input('productPriceInNaira16Inches');
+            $product->productPriceInNaira18Inches = $request->input('productPriceInNaira18Inches');
+            $product->productPriceInNaira20Inches = $request->input('productPriceInNaira20Inches');
+            $product->productPriceInNaira22Inches = $request->input('productPriceInNaira22Inches');
+            $product->productPriceInNaira24Inches = $request->input('productPriceInNaira24Inches');
+            $product->productPriceInNaira26Inches = $request->input('productPriceInNaira26Inches');
+            $product->productPriceInNaira28Inches = $request->input('productPriceInNaira28Inches');
+
+
+
     
             // Save the updated product in the database
             $product->save();
+            $product->refresh();
 
             //update the cache to hold the current data
             $allProducts = Product::orderBy('created_at', 'desc')->get()->toArray();
             Cache::put('allProducts', json_encode($allProducts, true));
-            
+            Cache::put("singleProduct_{$productId}", $product, 1440); //expiry date of 1 day in minutes
 
+        
     
             return response()->json([
                 "code" => "success",
