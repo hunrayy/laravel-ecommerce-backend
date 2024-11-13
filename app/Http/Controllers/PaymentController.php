@@ -16,10 +16,7 @@ class PaymentController extends Controller
 {
     //
     public function makePayment(Request $request){
-        // return $request->all();
-        $currencyClass = new CurrencyController();
-        // return $currencyClass->convertCurrency('100000', 'USD');
-
+       
         try {   
             $request->validate([
                 'firstname' => 'required|string',
@@ -27,37 +24,55 @@ class PaymentController extends Controller
                 'email' => 'required|email',
                 'address' => 'required|string',
                 'city' => 'required|string',
-                'phoneNumber' => 'required|string',
+                'phoneNumber' => 'phone',
                 'country' => 'required|string',
                 'state' => 'required|string',
                 'checkoutTotal' => 'required|numeric',
                 'currency' => 'required|string',
                 'expectedDateOfDelivery' => 'required|string',
                 'cartProducts' => 'required'
-            ]);
+            ],
+            ['phoneNumber.phone' => 'The :attribute must be a valid phone number, preceeded by the country code.']);
 
-            $email = $request->input('email');
-            $firstname = $request->input('firstname');
-            $lastname = $request->input('lastname');
-            $address = $request->input('address');
-            $city = $request->input('city');
-            $postalCode = $request->input('postalCode');
-            $phoneNumber = $request->input('phoneNumber');
-            $country = $request->input('country');
-            $state = $request->input('state');
-            $subtotal = $request->input('totalPrice');
-            $shippingFee = $request->input('checkoutTotal') - $request->input('totalPrice');
-            $totalPrice = $request->input('checkoutTotal');
-            $currency = $request->input('currency');
-            $expectedDateOfDelivery = $request->input('expectedDateOfDelivery');
-            $cartProducts = $request->input('cartProducts');
-            $uniqueId = now()->timestamp; // Similar to Date.now()
+            // run a function to convert the price of each cart item to the desired currency passed
+            $currencyClass = new CurrencyController();
+            $cartProducts = $request->cartProducts; // Get the products from the request
+        
+            // Loop through each product and update the price
+            foreach ($cartProducts as $index => $product) {
+                // Convert the currency
+                $convertedCurrency = $currencyClass->convertCurrency($product['productPriceInNaira'], $request->currency);
+                
+                // Add the new price directly to each product
+                $cartProducts[$index]['updatedPrice'] = number_format($convertedCurrency, 2, '.', ',');
+            }
+        
+            // Now cartProducts contains each product with its new price added
+            $updatedRequestData = array_merge($request->all(), ['cartProducts' => $cartProducts]);
+
+
+
+            $email = $updatedRequestData['email'];
+            $firstname = $updatedRequestData['firstname'];
+            $lastname = $updatedRequestData['lastname'];
+            $address = $updatedRequestData['address'];
+            $city = $updatedRequestData['city'];
+            $postalCode = $updatedRequestData['postalCode'];
+            $phoneNumber = $updatedRequestData['phoneNumber'];
+            $country = $updatedRequestData['country'];
+            $state = $updatedRequestData['state'];
+            $subtotal = $updatedRequestData['totalPrice'];
+            $shippingFee = $updatedRequestData['checkoutTotal'] - $updatedRequestData['totalPrice'];
+            $totalPrice = $updatedRequestData['checkoutTotal'];
+            $currency = $updatedRequestData['currency'];
+            $expectedDateOfDelivery = $updatedRequestData['expectedDateOfDelivery'];
+            $cartProducts = $updatedRequestData['cartProducts'];
+            $uniqueId = now()->timestamp;
 
             // Call createToken method from AuthController
             $authController = new AuthController(); // Create an instance of AuthController
 
             $tokenPayload = [
-                
                 'email' => $email,
                 'firstname' => $firstname,
                 'lastname' => $lastname,
@@ -82,7 +97,9 @@ class PaymentController extends Controller
             // Flutterwave API payload
             $payload = [
                 'tx_ref' => 'ref_' . $uniqueId, // Unique transaction reference
-                'amount' => (float)$totalPrice,
+                'email' => $email,
+                // 'amount' => (float)$totalPrice,
+                'amount' => (int)$totalPrice,
                 'currency' => $currency,  // Ensure this currency is supported by Flutterwave
                 'customer' => [
                     'email' => $email,
@@ -96,6 +113,7 @@ class PaymentController extends Controller
                 'Authorization' => 'Bearer ' . env('FLUTTERWAVE_SECRET_KEY'),
                 'Content-Type' => 'application/json'
             ])->post('https://api.flutterwave.com/v3/payments', $payload);
+
             
             // Check if the request was successful
             if ($response->successful()) {
@@ -120,6 +138,7 @@ class PaymentController extends Controller
     public function validatePayment(Request $request){
         // Extract the 'tx_ref' from the request
         $tx_ref = $request->query('tx_ref');
+        $detailsToken = $request->query('detailsToken');
         // \Log::info("from tx_ref", ['tx_ref' => $tx_ref]);
 
         // Check if 'tx_ref' is missing
@@ -138,7 +157,7 @@ class PaymentController extends Controller
                 'tx_ref' => $tx_ref
             ]);
 
-            \Log::info("from flutterwave", ['response' => $response->json()]);
+            // \Log::info("from flutterwave", ['response' => $response->json()]);
 
             // Check if the response indicates success
             if ($response->json('status') === 'success') {
@@ -151,7 +170,9 @@ class PaymentController extends Controller
                     $data['amount'],
                     'successful',
                     $data['created_at'],
-                    $data['payment_type']
+                    $data['payment_type'],
+                    $detailsToken
+
                 );
             } else {
                 return response()->json([
@@ -174,7 +195,7 @@ class PaymentController extends Controller
         }
     }
 
-    public function processPayment($flw_ref, $tx_ref, $amount, $status, $created_at, $payment_type)
+    public function processPayment($flw_ref, $tx_ref, $amount, $status, $created_at, $payment_type, $detailsToken)
     {
         try {
             // Check if a transaction with the same flw_ref or tx_ref already exists
@@ -200,25 +221,28 @@ class PaymentController extends Controller
                 'payment_type' => $payment_type
             ]);
 
-            return response()->json([
-                'code' => 'success',
-                'message' => 'Transaction processed successfully'
-            ], 200);
+            $orderClass = new OrderController();
+            return $orderClass->saveProductToDbAfterPayment($detailsToken);
+
+            // return response()->json([
+            //     'code' => 'success',
+            //     'message' => 'Transaction processed successfully'
+            // ], 200);
 
         } catch (\Exception $error) {
             // Log the error for debugging purposes
-            Log::error('Error processing payment', [
-                'flw_ref' => $flw_ref,
-                'tx_ref' => $tx_ref,
-                'error' => $error->getMessage()
-            ]);
+            // Log::error('Error processing payment', [
+            //     'flw_ref' => $flw_ref,
+            //     'tx_ref' => $tx_ref,
+            //     'error' => $error->getMessage()
+            // ]);
 
             // Return an error response
             return response()->json([
                 'code' => 'error',
                 'message' => 'An error occurred while processing the transaction',
                 'reason' => $error->getMessage()
-            ], 500);
+            ]);
         }
     }
 

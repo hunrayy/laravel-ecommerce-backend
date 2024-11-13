@@ -164,7 +164,7 @@ class PaystackPaymentController extends Controller
                 'Authorization' => 'Bearer ' . env('PAYSTACK_SECRET_KEY'),
             ])->get('https://api.paystack.co/transaction/verify/' . $reference);
 
-            \Log::info("from Paystack", ['response' => $response->json()]);
+            // \Log::info("from Paystack", ['response' => $response->json()]);
 
             // Check if the response indicates success
             if ($response->json('status') === true) {
@@ -243,10 +243,10 @@ class PaystackPaymentController extends Controller
     
         } catch (\Exception $error) {
             // Log the error for debugging purposes
-            Log::error('Error processing payment', [
-                'reference' => $reference,
-                'error' => $error->getMessage()
-            ]);
+            // Log::error('Error processing payment', [
+            //     'reference' => $reference,
+            //     'error' => $error->getMessage()
+            // ]);
     
             // Return an error response
             return response()->json([

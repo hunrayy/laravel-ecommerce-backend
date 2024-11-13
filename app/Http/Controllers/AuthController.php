@@ -25,6 +25,7 @@ use App\Models\Shipping;
 use App\Models\Order;
 
 
+
 class AuthController extends Controller
 {
     //
@@ -43,7 +44,18 @@ class AuthController extends Controller
 
     //function to send email verification code
     public function sendEmailVerificationCode(Request $request){
+        $request->validate([
+            'email' => 'string|required'
+        ]);
         $email = $request->email;
+        //check if email already exists in database
+        $checkIfEmailExists = User::where('email', $email)->first();
+        if($checkIfEmailExists){
+            return response()->json([
+                'code' => 'error',
+                'message' => 'Email already in use'
+            ]);
+        }
         $verificationCode = $this->generateVerificationCode();
 
         //use PHPMailer to send the email
@@ -140,7 +152,7 @@ class AuthController extends Controller
                 }catch(ExpiredException $e){
                     return response()->json([
                         'code' => 'error',
-                        'message' => 'Verification code has expired',
+                        'message' => 'Verification code has expired kindly request a new one',
                         'reason' => $e->getMessage()
                     ]);
                 }catch (\Exception $e) {
@@ -216,6 +228,9 @@ class AuthController extends Controller
                 'password' => $hashedPassword,
             ]);
 
+            $allUsers = User::all()->toArray();
+            Cache::put('allUsers', json_encode($allUsers), 1440); //expiration time of one day
+
             return response()->json([
                 'code' => 'success',
                 'message' => 'Account successfully created',
@@ -276,7 +291,7 @@ class AuthController extends Controller
                 'password' => $user->password
             ];
             $token = $this->createToken($payload, 20 * 86400);
-
+            
             return response()->json([
                 'message' => 'Login success',
                 'code' => 'success',
