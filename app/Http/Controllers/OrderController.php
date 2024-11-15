@@ -50,7 +50,7 @@ class OrderController extends Controller
             $expectedDateOfDelivery = $verifyToken->expectedDateOfDelivery;
             $transactionId = $verifyToken->transactionId;
             // $products = $request->input('cartProducts'); // Assuming products are passed from the frontend
-            $products = $verifyToken->cartProducts;
+            $products = json_decode($verifyToken->cartProducts);
 
             // Fetch user_id from the email passed in the token
             $user = User::where('email', $email)->firstOrFail(); 

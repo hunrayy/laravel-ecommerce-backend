@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 use App\Models\User;
+use App\Models\Transaction;
+
 
 class PaymentController extends Controller
 {
     //
+
+
     public function makePayment(Request $request){
        
         try {   
@@ -67,7 +71,13 @@ class PaymentController extends Controller
             $currency = $updatedRequestData['currency'];
             $expectedDateOfDelivery = $updatedRequestData['expectedDateOfDelivery'];
             $cartProducts = $updatedRequestData['cartProducts'];
-            $uniqueId = now()->timestamp;
+            $uniqueId = (int) substr(microtime(true) * random_int(10000, 99999), 0, 15);
+
+            // Check in the database for uniqueness
+            if (Transaction::where('tx_ref', "ref_$uniqueId")->exists()) {
+                // Regenerate if duplicate
+                $uniqueId = (int) substr(microtime(true) * random_int(10000, 99999), 0, 15);
+            }
 
             // Call createToken method from AuthController
             $authController = new AuthController(); // Create an instance of AuthController
@@ -85,7 +95,7 @@ class PaymentController extends Controller
                 'totalPrice' => $totalPrice,
                 'shippingFee' => $shippingFee,
                 'subtotal' => $subtotal,
-                'cartProducts' => $cartProducts,
+                'cartProducts' => json_encode($cartProducts),
                 'currency' => $currency,
                 'expectedDateOfDelivery' => $expectedDateOfDelivery,
                 'transactionId' => $uniqueId
@@ -94,11 +104,9 @@ class PaymentController extends Controller
             // Generate token with a 5-minute expiration
             $createTokenWithDetails = $authController->createToken($tokenPayload, 5 * 60);
 
-            // Flutterwave API payload
             $payload = [
                 'tx_ref' => 'ref_' . $uniqueId, // Unique transaction reference
                 'email' => $email,
-                // 'amount' => (float)$totalPrice,
                 'amount' => (int)$totalPrice,
                 'currency' => $currency,  // Ensure this currency is supported by Flutterwave
                 'customer' => [
@@ -106,9 +114,14 @@ class PaymentController extends Controller
                     'phone_number' => $phoneNumber,
                     'name' => $firstname . ' ' . $lastname,
                 ],
-                'redirect_url' => env('FRONTEND_URL') . '/payment-success?details=' . $createTokenWithDetails,
+                'redirect_url' => env('FRONTEND_URL') . '/payment-status',
+                'meta' => [
+                    'detailsToken' => $createTokenWithDetails
+                ]
+
             ];
             // Make POST request to Flutterwave API
+            
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . env('FLUTTERWAVE_SECRET_KEY'),
                 'Content-Type' => 'application/json'
@@ -138,7 +151,7 @@ class PaymentController extends Controller
     public function validatePayment(Request $request){
         // Extract the 'tx_ref' from the request
         $tx_ref = $request->query('tx_ref');
-        $detailsToken = $request->query('detailsToken');
+        // $detailsToken = $request->query('detailsToken');
         // \Log::info("from tx_ref", ['tx_ref' => $tx_ref]);
 
         // Check if 'tx_ref' is missing
@@ -162,6 +175,7 @@ class PaymentController extends Controller
             // Check if the response indicates success
             if ($response->json('status') === 'success') {
                 $data = $response->json('data');
+                $detailsToken = $data['meta']['detailsToken'];
 
                 // Process payment (You can implement the processPayment logic)
                 return $this->processPayment(
