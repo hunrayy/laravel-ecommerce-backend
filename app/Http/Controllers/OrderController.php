@@ -58,7 +58,15 @@ class OrderController extends Controller
 
 
             // Create order details
-            $tracking_id = rand(1000000000, 9999999999); // Generates a random 10-digit number
+            $tracking_id = random_int(1000000000, 9999999999); // Generates a random 10-digit number
+
+            // Check in the database for uniqueness
+            if (Order::where('tracking_id', $tracking_id)->exists()) {
+                // Regenerate if duplicate
+                $tracking_id = random_int(1000000000, 9999999999);
+            }
+
+
             $numberFormatOfTotalPrice = str_replace(',', '', $totalPrice); // Remove commas
             $numberFormatOfSubtotal = str_replace(',', '', $subtotal); // Remove commas
             $numberFormatOfShippingFee = str_replace(',', '', $shippingFee); // Remove commas

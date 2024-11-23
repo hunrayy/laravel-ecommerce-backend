@@ -20,6 +20,7 @@ class PaymentController extends Controller
 
 
     public function makePayment(Request $request){
+
        
         try {   
             $request->validate([
@@ -71,12 +72,14 @@ class PaymentController extends Controller
             $currency = $updatedRequestData['currency'];
             $expectedDateOfDelivery = $updatedRequestData['expectedDateOfDelivery'];
             $cartProducts = $updatedRequestData['cartProducts'];
-            $uniqueId = (int) substr(microtime(true) * random_int(10000, 99999), 0, 15);
+            // $uniqueId = (int) substr(microtime(true) * random_int(10000, 99999), 0, 15);
+            $uniqueId = random_int(1000000000, 9999999999);
 
             // Check in the database for uniqueness
             if (Transaction::where('tx_ref', "ref_$uniqueId")->exists()) {
                 // Regenerate if duplicate
-                $uniqueId = (int) substr(microtime(true) * random_int(10000, 99999), 0, 15);
+                // $uniqueId = (int) substr(microtime(true) * random_int(10000, 99999), 0, 15);
+                $uniqueId = random_int(1000000000, 9999999999);
             }
 
             // Call createToken method from AuthController
@@ -197,9 +200,9 @@ class PaymentController extends Controller
 
         } catch (\Exception $error) {
             // Log detailed error information for better debugging
-            \Log::error('Error response from Flutterwave', [
-                'message' => $error->getMessage()
-            ]);
+            // \Log::error('Error response from Flutterwave', [
+            //     'message' => $error->getMessage()
+            // ]);
 
             // Handle any errors from the request
             return response()->json([

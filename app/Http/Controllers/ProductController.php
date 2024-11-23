@@ -366,7 +366,7 @@ class ProductController extends Controller
 
             if($fetchedProduct){
                 //save the product in the cache
-                Cache::put("singleProduct_{$productId}", $fetchedProduct);
+                Cache::put("singleProduct_{$productId}", $fetchedProduct, 1440); //expiration time of one day
 
                 return response()->json([
                     "code" => "success",

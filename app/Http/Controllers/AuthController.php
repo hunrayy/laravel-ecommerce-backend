@@ -31,7 +31,7 @@ class AuthController extends Controller
     //
     //function to generate a random 6 digit code
     private function generateVerificationCode(){
-        return rand(100000, 999999);
+        return random_int(100000, 999999);
     }
 
     //function to create a JWT token
@@ -376,7 +376,7 @@ class AuthController extends Controller
             $userOrder = Order::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
             
             //save fetched orders to cache
-            Cache::put($userId . '_orders', json_encode($userOrder));
+            Cache::put($userId . '_orders', json_encode($userOrder), 1440); //expiration time of one day
 
             return response()->json([
                 "message" => "User order successfully retrieved from database",
