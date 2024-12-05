@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-class VerifyJWTToken
+class IsTokenActive
 {
     /**
      * Handle an incoming request.
