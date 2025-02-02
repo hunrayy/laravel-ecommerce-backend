@@ -190,6 +190,7 @@ class ProductController extends Controller
             Product::create([
                 'productName' => $request->input('productName'),
                 'productImage' => $uploadedProductImage,
+                // 'category_id' =>
                 'subImage1' => $uploadedSubImage1,
                 'subImage2' => $uploadedSubImage2,
                 'subImage3' => $uploadedSubImage3,
@@ -202,7 +203,6 @@ class ProductController extends Controller
                 'productPriceInNaira24Inches' => $request->input('productPrice24Inches'),
                 'productPriceInNaira26Inches' => $request->input('productPrice26Inches'),
                 'productPriceInNaira28Inches' => $request->input('productPrice28Inches'),
-
                 
             ]);
 
