@@ -13,6 +13,7 @@ class Product extends Model
     protected $fillable = [
         'productName',
         'productImage',
+        'category_id',
         'subImage1',
         'subImage2',
         'subImage3',
@@ -42,6 +43,12 @@ class Product extends Model
             // Automatically set the id to a new UUID when creating
             $model->id = (string) Str::uuid();
         });
+    }
+
+    // Define the relationship to ProductCategory
+    public function category()
+    {
+        return $this->belongsTo(ProductsCategory::class);
     }
 }
     

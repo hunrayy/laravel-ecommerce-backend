@@ -160,6 +160,7 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), [
             'productImage' => 'image|mimes:jpeg,png,jpg,gif',
             'productName' => 'required|string|max:255',
+            'productCategory' => 'nullable|string|exists:products_category,name',
             'productPrice12Inches' => 'required|numeric',
             'productPrice14Inches' => 'required|numeric',
             'productPrice16Inches' => 'required|numeric',
