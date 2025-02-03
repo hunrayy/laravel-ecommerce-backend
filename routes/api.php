@@ -72,6 +72,7 @@ Route::get('/admin/get-all-users', [UserController::class, 'getAllUsers'])->midd
 Route::post('/admin-send-password-reset-link', [AdminPasswordResetController::class, 'sendAdminPasswordResetLink']);
 Route::post('/admin-reset-password', [AdminPasswordResetController::class, 'AdminResetPassword']);
 Route::post('/is-admin-token-active', [AdminAuthController::class, 'isAdminTokenActive'])->middleware(VerifyAdminToken::class);
+Route::get('/admin/fetch-product-categories', [ProductController::class, 'fetchProductCategories'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/create-product', [ProductController::class, 'createProduct'])->middleware(VerifyAdminToken::class);
 Route::get('/admin/get-page', [GetPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/edit-page', [EditPagesController::class, 'index'])->middleware(VerifyAdminToken::class);
