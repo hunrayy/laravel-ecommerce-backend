@@ -24,7 +24,6 @@ return new class extends Migration
             ['name' => 'Virgin hairs'],
             ['name' => 'Hair installation'],
             ['name' => 'Lash extensions'],
-            ['name' => 'General'],
         ]);
     }
 
