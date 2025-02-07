@@ -17,6 +17,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserPasswordResetController;
 use App\Http\Controllers\AdminPasswordResetController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductCategoryController;
 
 
 
@@ -83,6 +84,10 @@ Route::post('/admin/delete-product', [ProductController::class, 'deleteProduct']
 Route::get('/admin/get-orders', [OrderController::class, 'getOrders'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/change-order-status-to-out-for-delivery', [OrderController::class, 'ChangeOrderStatusToOutForDelivery'])->middleware(VerifyAdminToken::class);
 Route::post('/admin/change-order-status-to-delivered', [OrderController::class, 'ChangeOrderStatusToDelivered'])->middleware(VerifyAdminToken::class);
+Route::post('/admin/create-product-category', [ProductCategoryController::class, 'createCategory'])->middleware(VerifyAdminToken::class);
+Route::post('/admin/edit-product-category', [ProductCategoryController::class, 'editCategory'])->middleware(VerifyAdminToken::class);
+Route::post('/admin/delete-product-category', [ProductCategoryController::class, 'deleteCategory'])->middleware(VerifyAdminToken::class);
+
 
 
 

@@ -150,6 +150,7 @@ use Illuminate\Support\Facades\Redis;
 
 use App\Models\Product; 
 use App\Models\ProductsCategory; 
+use Exception;
 
 use Illuminate\Http\Request;
 
