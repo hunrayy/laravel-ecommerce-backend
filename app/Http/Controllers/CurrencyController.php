@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Http;
 class CurrencyController extends Controller
 {
     //
-    public function convertCurrency($amountInNaira, $targetCurrency){
-        $apiUrl = 'https://api.exchangerate-api.com/v4/latest/NGN';
+    public function convertCurrency($amountInPounds, $targetCurrency){
+        $apiUrl = 'https://api.exchangerate-api.com/v4/latest/GBP';
 
         try {
-            // Send a GET request to fetch exchange rates for NGN
+            // Send a GET request to fetch exchange rates for GBP
             $response = Http::get($apiUrl);
 
             if ($response->successful()) {
@@ -20,7 +20,7 @@ class CurrencyController extends Controller
                 $targetCurrencyRate = $response['rates'][$targetCurrency];
 
                 
-                $convertedAmount = $amountInNaira * $targetCurrencyRate;
+                $convertedAmount = $amountInPounds * $targetCurrencyRate;
 
                 return $convertedAmount;
             } else {

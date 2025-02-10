@@ -108,7 +108,7 @@ class OrderController extends Controller
             $orderSummary = implode('', array_map(function($item, $index) use ($currency) {
                 // $formattedPrice = 'NGN' . ' ' . number_format((float)$item->price, 2, '.', ',');
                 $currencyClass = new CurrencyController();
-                $convertedCurrency = $currencyClass->convertCurrency($item->productPriceInNaira, $currency);
+                $convertedCurrency = $currencyClass->convertCurrency($item->productPrice, $currency);
 
                 $formattedPrice = $currency . ' ' . number_format((float)$convertedCurrency, 2, '.', ',');
 

@@ -322,8 +322,8 @@ class AuthController extends Controller
             $numberOfDaysForDomesticDelivery = $table->numberOfDaysForDomesticDelivery;
             $numberOfDaysForInternationalDelivery = $table->numberOfDaysForInternationalDelivery;
             $countryOfWarehouseLocation = $table->countryOfWarehouseLocation;
-            $domesticShippingFeeInNaira = $table->domesticShippingFeeInNaira;
-            $internationalShippingFeeInNaira = $table->internationalShippingFeeInNaira;
+            $domesticShippingFee = $table->domesticShippingFee;
+            $internationalShippingFee = $table->internationalShippingFee;
 
             return response()->json([
                 "message" => 'number of days for domestic and international delivery fetched successfully',
@@ -332,8 +332,8 @@ class AuthController extends Controller
                     'countryOfWarehouseLocation' => $countryOfWarehouseLocation,
                     "numberOfDaysForDomesticDelivery" => $numberOfDaysForDomesticDelivery,
                     "numberOfDaysForInternationalDelivery" => $numberOfDaysForInternationalDelivery,
-                    "domesticShippingFeeInNaira" => $domesticShippingFeeInNaira,
-                    "internationalShippingFeeInNaira" => $internationalShippingFeeInNaira
+                    "domesticShippingFee" => $domesticShippingFee,
+                    "internationalShippingFee" => $internationalShippingFee
                 ]
             ]);
         }catch(\Exception $e){

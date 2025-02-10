@@ -73,8 +73,8 @@ class AdminAuthController extends Controller
                     'is_an_admin' => $admin->is_an_admin,
                     'token' => $loginToken,
                     'countryOfWarehouseLocation' => $shipping->countryOfWarehouseLocation,
-                    'domesticShippingFeeInNaira' => $shipping->domesticShippingFeeInNaira,
-                    'internationalShippingFeeInNaira' => $shipping->internationalShippingFeeInNaira,
+                    'domesticShippingFee' => $shipping->domesticShippingFee,
+                    'internationalShippingFee' => $shipping->internationalShippingFee,
                     'numberOfDaysForDomesticDelivery' => $shipping->numberOfDaysForDomesticDelivery,
                     'numberOfDaysForInternationalDelivery' => $shipping->numberOfDaysForInternationalDelivery
                 ],
@@ -101,8 +101,8 @@ class AdminAuthController extends Controller
                 'formData.lastname' => 'required|string',
                 'formData.email' => 'required|email',
                 'formData.countryOfWarehouseLocation' => 'required|string', // Ensure this is present
-                'formData.domesticShippingFeeInNaira' => 'required|numeric',
-                'formData.internationalShippingFeeInNaira' => 'required|numeric',
+                'formData.domesticShippingFee' => 'required|numeric',
+                'formData.internationalShippingFee' => 'required|numeric',
                 'formData.numberOfDaysForDomesticDelivery' => 'required|numeric',
                 'formData.numberOfDaysForInternationalDelivery' => 'required|numeric',
                 'formData.otp' => 'required|integer',
@@ -139,8 +139,8 @@ class AdminAuthController extends Controller
                 'is_an_admin' => true,
                 'user' => 'admin',
                 // 'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
-                // 'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
-                // 'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira'),
+                // 'domesticShippingFee' => $request->input('formData.domesticShippingFee'),
+                // 'internationalShippingFee' => $request->input('formData.internationalShippingFee'),
                 // 'numberOfDaysForDomesticDelivery' => $request->input('formData.numberOfDaysForDomesticDelivery'),
                 // 'numberOfDaysForInternationalDelivery' => $request->input('formData.numberOfDaysForInternationalDelivery')
             ]);
@@ -148,8 +148,8 @@ class AdminAuthController extends Controller
             //update the shipping table
             Shipping::first()->update([
                 'countryOfWarehouseLocation' => $request->input('formData.countryOfWarehouseLocation'),
-                'domesticShippingFeeInNaira' => $request->input('formData.domesticShippingFeeInNaira'),
-                'internationalShippingFeeInNaira' => $request->input('formData.internationalShippingFeeInNaira'),
+                'domesticShippingFee' => $request->input('formData.domesticShippingFee'),
+                'internationalShippingFee' => $request->input('formData.internationalShippingFee'),
                 'numberOfDaysForDomesticDelivery' => $request->input('formData.numberOfDaysForDomesticDelivery'),
                 'numberOfDaysForInternationalDelivery' => $request->input('formData.numberOfDaysForInternationalDelivery')
             ]);
@@ -172,8 +172,8 @@ class AdminAuthController extends Controller
                     'is_an_admin' => true,
                     'user' => 'admin',
                     'countryOfWarehouseLocation' => $updatedShippingRecord->countryOfWarehouseLocation,
-                    'domesticShippingFeeInNaira' => $updatedShippingRecord->domesticShippingFeeInNaira,
-                    'internationalShippingFeeInNaira' => $updatedShippingRecord->internationalShippingFeeInNaira,
+                    'domesticShippingFee' => $updatedShippingRecord->domesticShippingFee,
+                    'internationalShippingFee' => $updatedShippingRecord->internationalShippingFee,
                     'numberOfDaysForDomesticDelivery' => $updatedShippingRecord->numberOfDaysForDomesticDelivery,
                     'numberOfDaysForInternationalDelivery' => $updatedShippingRecord->numberOfDaysForInternationalDelivery
                 ]

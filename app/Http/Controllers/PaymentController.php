@@ -46,7 +46,7 @@ class PaymentController extends Controller
             // Loop through each product and update the price
             foreach ($cartProducts as $index => $product) {
                 // Convert the currency
-                $convertedCurrency = $currencyClass->convertCurrency($product['productPriceInNaira'], $request->currency);
+                $convertedCurrency = $currencyClass->convertCurrency($product['productPrice'], $request->currency);
                 
                 // Add the new price directly to each product
                 $cartProducts[$index]['updatedPrice'] = number_format($convertedCurrency, 2, '.', ',');

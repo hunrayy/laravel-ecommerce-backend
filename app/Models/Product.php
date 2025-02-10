@@ -17,17 +17,17 @@ class Product extends Model
         'subImage1',
         'subImage2',
         'subImage3',
-        'productPriceInNaira12Inches',
-        'productPriceInNaira14Inches',
-        'productPriceInNaira16Inches',
-        'productPriceInNaira18Inches',
-        'productPriceInNaira20Inches',
-        'productPriceInNaira22Inches',
-        'productPriceInNaira24Inches',
-        'productPriceInNaira26Inches',
-        'productPriceInNaira28Inches',
-
+        'productPrice12Inches',
+        'productPrice14Inches',
+        'productPrice16Inches',
+        'productPrice18Inches',
+        'productPrice20Inches',
+        'productPrice22Inches',
+        'productPrice24Inches',
+        'productPrice26Inches',
+        'productPrice28Inches',
     ];
+    
 
     // Disable the auto-incrementing feature
     public $incrementing = false;

@@ -14,11 +14,12 @@ class Shipping extends Model
     
     protected $fillable = [
         'countryOfWarehouseLocation',
-        'domesticShippingFeeInNaira',
-        'internationalShippingFeeInNaira',
+        'domesticShippingFee',  // Updated field name
+        'internationalShippingFee',  // Updated field name
         'numberOfDaysForDomesticDelivery',
         'numberOfDaysForInternationalDelivery',
     ];
+    
 
     //disable the auto incrementing feature
     public $incrementing = false;

@@ -39,7 +39,7 @@
 //             Product::create([
 //                 // 'id' => 
 //                 'productName' => $request->input('productName'),
-//                 'productPriceInNaira' => $request->input('productPrice'),
+//                 'productPrice' => $request->input('productPrice'),
 //                 'productImage' => $uploadedProductImage,
 //                 'subImage1' => $uploadedSubImage1,
 //                 'subImage2' => $uploadedSubImage2,
@@ -234,15 +234,15 @@ class ProductController extends Controller
                 'subImage1' => $uploadedSubImage1,
                 'subImage2' => $uploadedSubImage2,
                 'subImage3' => $uploadedSubImage3,
-                'productPriceInNaira12Inches' => $request->input('productPrice12Inches'),
-                'productPriceInNaira14Inches' => $request->input('productPrice14Inches'),
-                'productPriceInNaira16Inches' => $request->input('productPrice16Inches'),
-                'productPriceInNaira18Inches' => $request->input('productPrice18Inches'),
-                'productPriceInNaira20Inches' => $request->input('productPrice20Inches'),
-                'productPriceInNaira22Inches' => $request->input('productPrice22Inches'),
-                'productPriceInNaira24Inches' => $request->input('productPrice24Inches'),
-                'productPriceInNaira26Inches' => $request->input('productPrice26Inches'),
-                'productPriceInNaira28Inches' => $request->input('productPrice28Inches'),
+                'productPrice12Inches' => $request->input('productPrice12Inches'),
+                'productPrice14Inches' => $request->input('productPrice14Inches'),
+                'productPrice16Inches' => $request->input('productPrice16Inches'),
+                'productPrice18Inches' => $request->input('productPrice18Inches'),
+                'productPrice20Inches' => $request->input('productPrice20Inches'),
+                'productPrice22Inches' => $request->input('productPrice22Inches'),
+                'productPrice24Inches' => $request->input('productPrice24Inches'),
+                'productPrice26Inches' => $request->input('productPrice26Inches'),
+                'productPrice28Inches' => $request->input('productPrice28Inches'),
             ]);
 
             //update the cache to hold the current data
@@ -499,15 +499,15 @@ class ProductController extends Controller
             $request->validate([
                 'productImage' => 'required|string',
                 'productName' => 'required|string',
-                'productPriceInNaira12Inches' => 'required|numeric',
-                'productPriceInNaira14Inches' => 'required|numeric',
-                'productPriceInNaira16Inches' => 'required|numeric',
-                'productPriceInNaira18Inches' => 'required|numeric',
-                'productPriceInNaira20Inches' => 'required|numeric',
-                'productPriceInNaira22Inches' => 'required|numeric',
-                'productPriceInNaira24Inches' => 'required|numeric',
-                'productPriceInNaira26Inches' => 'required|numeric',
-                'productPriceInNaira28Inches' => 'required|numeric',
+                'productPrice12Inches' => 'required|numeric',
+                'productPrice14Inches' => 'required|numeric',
+                'productPrice16Inches' => 'required|numeric',
+                'productPrice18Inches' => 'required|numeric',
+                'productPrice20Inches' => 'required|numeric',
+                'productPrice22Inches' => 'required|numeric',
+                'productPrice24Inches' => 'required|numeric',
+                'productPrice26Inches' => 'required|numeric',
+                'productPrice28Inches' => 'required|numeric',
 
             ]);
             $productId = $request->query('productId');
@@ -579,21 +579,21 @@ class ProductController extends Controller
             // }
     
             // //process the product price
-            // if($request->has('productPriceInNaira12Inches')){
+            // if($request->has('productPrice12Inches')){
             //     // Update the price in the database
-            //     $product->productPriceInNaira = $request->input('productPriceInNaira');
+            //     $product->productPrice = $request->input('productPrice');
             // }
 
             $product->productName = $request->input('productName');
-            $product->productPriceInNaira12Inches = $request->input('productPriceInNaira12Inches');
-            $product->productPriceInNaira14Inches = $request->input('productPriceInNaira14Inches');
-            $product->productPriceInNaira16Inches = $request->input('productPriceInNaira16Inches');
-            $product->productPriceInNaira18Inches = $request->input('productPriceInNaira18Inches');
-            $product->productPriceInNaira20Inches = $request->input('productPriceInNaira20Inches');
-            $product->productPriceInNaira22Inches = $request->input('productPriceInNaira22Inches');
-            $product->productPriceInNaira24Inches = $request->input('productPriceInNaira24Inches');
-            $product->productPriceInNaira26Inches = $request->input('productPriceInNaira26Inches');
-            $product->productPriceInNaira28Inches = $request->input('productPriceInNaira28Inches');
+            $product->productPrice12Inches = $request->input('productPrice12Inches');
+            $product->productPrice14Inches = $request->input('productPrice14Inches');
+            $product->productPrice16Inches = $request->input('productPrice16Inches');
+            $product->productPrice18Inches = $request->input('productPrice18Inches');
+            $product->productPrice20Inches = $request->input('productPrice20Inches');
+            $product->productPrice22Inches = $request->input('productPrice22Inches');
+            $product->productPrice24Inches = $request->input('productPrice24Inches');
+            $product->productPrice26Inches = $request->input('productPrice26Inches');
+            $product->productPrice28Inches = $request->input('productPrice28Inches');
 
 
 
