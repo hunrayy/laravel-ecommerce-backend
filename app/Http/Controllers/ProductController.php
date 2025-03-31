@@ -275,7 +275,7 @@ class ProductController extends Controller
 
 
 
-    public function uploadToCloudinary($file){
+    public static function uploadToCloudinary($file){
         if(!$file){
             return null;
         }

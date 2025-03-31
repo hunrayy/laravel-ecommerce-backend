@@ -15,16 +15,17 @@ return new class extends Migration
         Schema::create('products_category', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('image');
             $table->timestamps();
         });
 
         // Bulk insert the categories
-        ProductsCategory::insert([
-            ['name' => 'Donor raw hair'],
-            ['name' => 'Virgin hairs'],
-            ['name' => 'Hair installation'],
-            ['name' => 'Lash extensions'],
-        ]);
+        // ProductsCategory::insert([
+        //     ['name' => 'Donor raw hair'],
+        //     ['name' => 'Virgin hairs'],
+        //     ['name' => 'Hair installation'],
+        //     ['name' => 'Lash extensions'],
+        // ]);
     }
 
     /**
